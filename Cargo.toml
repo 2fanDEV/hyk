@@ -1,0 +1,20 @@
+[package]
+name = "hyk"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.98"
+egui = "0.31.1"
+egui-winit = "0.31.1"
+egui_extras = "0.31.1"
+env_logger = "0.11.8"
+glm = "0.2.3"
+log = "0.4.27"
+muda = "0.16.1"
+pollster = "0.4.0"
+serde = "1.0.219"
+thiserror = "2.0.12"
+tokio = "1.45.1"
+wgpu = "25.0.2"
+winit = "0.30.11"
