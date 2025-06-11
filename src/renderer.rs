@@ -11,7 +11,7 @@ impl Renderer {
     
     pub fn new(window: Window) -> Result<Self>{
         let core = Core::init(window)?;
-
+        
         Ok(Self {
             core
         })

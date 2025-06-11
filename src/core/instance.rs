@@ -1,7 +1,8 @@
 use std::{ops::Deref, sync::Arc};
 
 use anyhow::Result;
-use wgpu::{Adapter, Instance, InstanceDescriptor, RequestAdapterOptions, Surface};
+use log::debug;
+use wgpu::{Adapter, BackendOptions, Backends, Instance, InstanceDescriptor, InstanceFlags, RequestAdapterOptions, Surface};
 use winit::window::Window;
 
 #[derive(Default, Debug)]
@@ -40,7 +41,6 @@ impl WGPUInstance {
 #[cfg(test)]
 mod tests {
     use super::WGPUInstance;
-
 
     #[test]
     fn init_instance_test() {

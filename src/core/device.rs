@@ -1,8 +1,8 @@
-use std::{ops::Deref, sync::Arc};
+use std::ops::Deref;
 
 use anyhow::{anyhow, Result};
 use thiserror::Error;
-use wgpu::{Device, DeviceDescriptor, Queue};
+use wgpu::{Device, DeviceDescriptor, Features, Queue};
 
 use super::instance::WGPUInstance;
 
@@ -30,21 +30,25 @@ impl WGPUDevice {
     pub fn create_device(instance: &WGPUInstance) -> Result<WGPUDevice> {
         match &instance.adapter {
             Some(adapter) => {
-                let (device, queue) = match pollster::block_on(
-                    adapter.request_device(&DeviceDescriptor::default()),
-                ) {
-                    Ok(res) => res,
-                    Err(err) => {
-                        return Err(anyhow!(DeviceError::DeviceCreationError(err.to_string())))
-                    }
+                let device_descriptor = DeviceDescriptor {
+                    required_features: Features::default()
+                        | Features::PUSH_CONSTANTS
+                        | Features::SPIRV_SHADER_PASSTHROUGH,
+                    ..Default::default()
                 };
+                let (device, queue) =
+                    match pollster::block_on(adapter.request_device(&device_descriptor)) {
+                        Ok(res) => res,
+                        Err(err) => {
+                            return Err(anyhow!(DeviceError::DeviceCreationError(err.to_string())))
+                        }
+                    };
 
                 Ok(Self { device, queue })
             }
             None => Err(anyhow!("Adapter is not initialized")),
         }
     }
-
 }
 
 #[cfg(test)]

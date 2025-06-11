@@ -1,0 +1,66 @@
+               OpCapability Shader[0m
+[34m[0m          %1 = OpExtInstImport "[32mGLSL.std.450[0m"[0m
+               OpMemoryModel Logical[0m GLSL450[0m
+               OpEntryPoint Fragment[0m [33m%4[0m "[32mmain[0m"[0m [33m%17[0m [33m%27[0m [33m%34[0m
+               OpExecutionMode [33m%4[0m OriginUpperLeft[0m
+               OpSource GLSL[0m [31m450[0m[0m
+               OpSourceExtension "[32mGL_GOOGLE_cpp_style_line_directive[0m"[0m
+               OpSourceExtension "[32mGL_GOOGLE_include_directive[0m"[0m
+               OpName [33m%4[0m "[32mmain[0m"[0m
+               OpName [33m%9[0m "[32msampled_data[0m"[0m
+               OpName [33m%13[0m "[32mfont_texture[0m"[0m
+               OpName [33m%17[0m "[32mv_texCoords[0m"[0m
+               OpName [33m%21[0m "[32mfont_shape_alpha[0m"[0m
+               OpName [33m%27[0m "[32mv_outColor[0m"[0m
+               OpName [33m%34[0m "[32mf_outColor[0m"[0m
+               OpDecorate [33m%13[0m Binding[0m [31m0[0m[0m
+               OpDecorate [33m%13[0m DescriptorSet[0m [31m0[0m[0m
+               OpDecorate [33m%17[0m Location[0m [31m1[0m[0m
+               OpDecorate [33m%27[0m Location[0m [31m0[0m[0m
+               OpDecorate [33m%34[0m Location[0m [31m0[0m[0m
+[34m[0m          %2 = OpTypeVoid
+[34m[0m          %3 = OpTypeFunction [33m%2[0m
+[34m[0m          %6 = OpTypeFloat [31m32[0m[0m
+[34m[0m          %7 = OpTypeVector [33m%6[0m [31m4[0m[0m
+[34m[0m          %8 = OpTypePointer Function[0m [33m%7[0m
+[34m[0m         %10 = OpTypeImage [33m%6[0m 2D[0m [31m0[0m[0m [31m0[0m[0m [31m0[0m[0m [31m1[0m[0m Unknown[0m
+[34m[0m         %11 = OpTypeSampledImage [33m%10[0m
+[34m[0m         %12 = OpTypePointer UniformConstant[0m [33m%11[0m
+[34m[0m         %13 = OpVariable [33m%12[0m UniformConstant[0m
+[34m[0m         %15 = OpTypeVector [33m%6[0m [31m2[0m[0m
+[34m[0m         %16 = OpTypePointer Input[0m [33m%15[0m
+[34m[0m         %17 = OpVariable [33m%16[0m Input[0m
+[34m[0m         %20 = OpTypePointer Function[0m [33m%6[0m
+[34m[0m         %22 = OpTypeInt [31m32[0m[0m [31m0[0m[0m
+[34m[0m         %23 = OpConstant [33m%22[0m [31m0[0m[0m
+[34m[0m         %26 = OpTypePointer Input[0m [33m%7[0m
+[34m[0m         %27 = OpVariable [33m%26[0m Input[0m
+[34m[0m         %28 = OpConstant [33m%22[0m [31m3[0m[0m
+[34m[0m         %29 = OpTypePointer Input[0m [33m%6[0m
+[34m[0m         %33 = OpTypePointer Output[0m [33m%7[0m
+[34m[0m         %34 = OpVariable [33m%33[0m Output[0m
+[34m[0m         %35 = OpTypeVector [33m%6[0m [31m3[0m[0m
+[34m[0m          %4 = OpFunction [33m%2[0m None[0m [33m%3[0m
+[34m[0m          %5 = OpLabel
+[34m[0m          %9 = OpVariable [33m%8[0m Function[0m
+[34m[0m         %21 = OpVariable [33m%20[0m Function[0m
+[34m[0m         %14 = OpLoad [33m%11[0m [33m%13[0m
+[34m[0m         %18 = OpLoad [33m%15[0m [33m%17[0m
+[34m[0m         %19 = OpImageSampleImplicitLod [33m%7[0m [33m%14[0m [33m%18[0m
+               OpStore [33m%9[0m [33m%19[0m
+[34m[0m         %24 = OpAccessChain [33m%20[0m [33m%9[0m [33m%23[0m
+[34m[0m         %25 = OpLoad [33m%6[0m [33m%24[0m
+[34m[0m         %30 = OpAccessChain [33m%29[0m [33m%27[0m [33m%28[0m
+[34m[0m         %31 = OpLoad [33m%6[0m [33m%30[0m
+[34m[0m         %32 = OpFMul [33m%6[0m [33m%25[0m [33m%31[0m
+               OpStore [33m%21[0m [33m%32[0m
+[34m[0m         %36 = OpLoad [33m%7[0m [33m%27[0m
+[34m[0m         %37 = OpVectorShuffle [33m%35[0m [33m%36[0m [33m%36[0m [31m0[0m[0m [31m1[0m[0m [31m2[0m[0m
+[34m[0m         %38 = OpLoad [33m%6[0m [33m%21[0m
+[34m[0m         %39 = OpCompositeExtract [33m%6[0m [33m%37[0m [31m0[0m[0m
+[34m[0m         %40 = OpCompositeExtract [33m%6[0m [33m%37[0m [31m1[0m[0m
+[34m[0m         %41 = OpCompositeExtract [33m%6[0m [33m%37[0m [31m2[0m[0m
+[34m[0m         %42 = OpCompositeConstruct [33m%7[0m [33m%39[0m [33m%40[0m [33m%41[0m [33m%38[0m
+               OpStore [33m%34[0m [33m%42[0m
+               OpReturn
+               OpFunctionEnd
