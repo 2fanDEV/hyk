@@ -67,11 +67,11 @@ mod tests {
         let instance = WGPUInstance::init_instance().unwrap();
         let device = Arc::new(WGPUDevice::create_device(&instance).unwrap());
         let mut shader_store = ShaderStore::new(device.clone());
-/*        shader_store.insert(
+        shader_store.insert(
             ShaderIdentifier::FRAGMENT_2D,
-            include_spirv!(""),
+            &Path::new("shaders/2D_fragment_shader.spv"),
         );
         let contains = shader_store.contains(ShaderIdentifier::FRAGMENT_2D);
-        assert_eq!(contains, true); **/
+        assert_eq!(contains, true); 
     }
 }
