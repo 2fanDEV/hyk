@@ -1,9 +1,6 @@
 use std::{collections::HashMap, fs, path::Path, sync::Arc};
-
-use anyhow::Result;
 use wgpu::{
-    include_spirv, include_spirv_raw,
-    util::{make_spirv, make_spirv_raw},
+    util::make_spirv_raw,
     ShaderModule, ShaderModuleDescriptor, ShaderSource,
 };
 
@@ -56,8 +53,6 @@ impl ShaderStore {
 
 #[cfg(test)]
 mod tests {
-    use wgpu::include_spirv;
-
     use super::{ShaderIdentifier, ShaderStore};
     use crate::core::{device::WGPUDevice, instance::WGPUInstance};
     use std::{path::Path, sync::Arc};
@@ -72,6 +67,6 @@ mod tests {
             &Path::new("shaders/2D_fragment_shader.spv"),
         );
         let contains = shader_store.contains(ShaderIdentifier::FRAGMENT_2D);
-        assert_eq!(contains, true); 
+        assert_eq!(contains, true);
     }
 }

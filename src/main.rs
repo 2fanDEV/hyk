@@ -10,7 +10,6 @@ fn main() {
         .filter_level(LevelFilter::Debug)
         .try_init()
         .unwrap();
-
     debug!("START APP");
     event_loop.run_app(&mut app).unwrap();
 }
