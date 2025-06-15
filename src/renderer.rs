@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use anyhow::Result;
 use winit::window::{self, Window};
 
@@ -13,7 +15,7 @@ pub struct Renderer {
 
 impl Renderer {
     
-    pub fn new(window: Window) -> Result<Self>{
+    pub fn new(window: Arc<Window>) -> Result<Self>{
         let core = Core::init(window)?;
         
         Ok(Self {
@@ -23,12 +25,16 @@ impl Renderer {
         })
     }
 
-    pub fn draw(&mut self) {
-        self.drawing();
+    pub fn render(&mut self) {
+        self.draw();
         self.frame_index = (self.frame_index + 1) % MAX_FRAMES;
     }
-    
-    pub fn drawing(&mut self) {
 
+    pub fn update(&mut self) {
+
+    }
+    
+    pub fn draw(&mut self) {
+        self.core.begin_render_pass("Main Render Pass", texture_view);
     }
 }

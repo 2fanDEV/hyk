@@ -28,8 +28,6 @@ impl Deref for WGPUDevice {
 
 impl WGPUDevice {
     pub fn create_device(instance: &WGPUInstance) -> Result<WGPUDevice> {
-        match &instance.adapter {
-            Some(adapter) => {
                 let device_descriptor = DeviceDescriptor {
                     required_features: Features::default()
                         | Features::PUSH_CONSTANTS
@@ -37,7 +35,7 @@ impl WGPUDevice {
                     ..Default::default()
                 };
                 let (device, queue) =
-                    match pollster::block_on(adapter.request_device(&device_descriptor)) {
+                    match pollster::block_on(instance.adapter.request_device(&device_descriptor)) {
                         Ok(res) => res,
                         Err(err) => {
                             return Err(anyhow!(DeviceError::DeviceCreationError(err.to_string())))
@@ -45,9 +43,6 @@ impl WGPUDevice {
                     };
 
                 Ok(Self { device, queue })
-            }
-            None => Err(anyhow!("Adapter is not initialized")),
-        }
     }
 }
 

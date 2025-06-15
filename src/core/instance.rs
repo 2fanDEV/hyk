@@ -1,15 +1,12 @@
 use std::{ops::Deref, sync::Arc};
 
 use anyhow::Result;
-use log::debug;
-use wgpu::{Adapter, BackendOptions, Backends, Instance, InstanceDescriptor, InstanceFlags, RequestAdapterOptions, Surface};
-use winit::window::Window;
+use wgpu::{Adapter, Instance, InstanceDescriptor, RequestAdapterOptions};
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct WGPUInstance {
     instance: Instance,
-    pub adapter: Option<Adapter>,
-    pub surface: Option<Surface<'static>>,
+    pub adapter: Adapter,
 }
 
 impl Deref for WGPUInstance {
@@ -25,16 +22,11 @@ impl WGPUInstance {
         let instance_descriptor = InstanceDescriptor::from_env_or_default();
         let instance = wgpu::Instance::new(&instance_descriptor);
         let adapter =
-            pollster::block_on(instance.request_adapter(&RequestAdapterOptions::default()));
+            pollster::block_on(instance.request_adapter(&RequestAdapterOptions::default())).expect("Error while requesting adapter");
         Ok(Self {
             instance,
-            adapter: adapter.ok(),
-            surface: None,
+            adapter,
         })
-    }
-
-    pub fn init_surface(&mut self, window: Window) {
-        self.surface = self.instance.create_surface(window).ok();
     }
 }
 
@@ -44,17 +36,8 @@ mod tests {
 
     #[test]
     fn init_instance_test() {
-        let wpgu_instance =
+        let wgpu_instance =
             WGPUInstance::init_instance().expect("Failed to initialize instance and adapter");
-        assert!(wpgu_instance.adapter.is_some());
-    }
-
-    #[test]
-    fn init_surface() {
-        let wpgu_instance = WGPUInstance::init_instance().unwrap();
-        assert!(wpgu_instance.surface.is_none());
-        // init window
-        // wpgu_instance.init_surface(handle);
-        // assert!(wpgu_instance.surface.is_some());
+        assert!(wgpu_instance.instance.generate_report().is_some())
     }
 }

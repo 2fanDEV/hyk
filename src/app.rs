@@ -11,6 +11,7 @@ use crate::renderer::Renderer;
 #[derive(Default)]
 pub struct App {
     renderer: Option<Renderer>,
+    window: Option<Arc<Window>>
 }
 
 #[allow(warnings)]
@@ -18,8 +19,10 @@ impl ApplicationHandler for App {
     fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
         let window_attributes =
             WindowAttributes::default().with_inner_size(LogicalSize::new(3840, 2160));
-        let window = event_loop.create_window(window_attributes).ok().unwrap();
-        self.renderer = Some(Renderer::new(window).unwrap());
+        let window = Arc::new(event_loop.create_window(window_attributes).ok().unwrap());
+        self.window =  Some(window.clone());
+        self.renderer = Some(Renderer::new(window.clone()).unwrap());
+
     }
 
     fn window_event(
