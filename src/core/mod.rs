@@ -4,10 +4,16 @@ use anyhow::Result;
 use device::WGPUDevice;
 use enums::BufferInput;
 use instance::WGPUInstance;
+use log::debug;
 use shader_store::{ShaderIdentifier, ShaderStore};
-use utils::pipeline_attachments::render_pipeline_descriptor;
+use utils::pipeline_attachments::{
+    color_target_state, create_vertex_state, pipeline_layout_descriptor, render_pipeline_descriptor,
+};
 use wgpu::{
-    wgc::id::markers::PipelineLayout, BindGroupLayout, BufferDescriptor, BufferUsages, Color, CommandEncoder, CommandEncoderDescriptor, Device, Face, FrontFace, PipelineLayout, PipelineLayoutDescriptor, PrimitiveTopology, RenderPass, RenderPassColorAttachment, RenderPassDescriptor, RenderPipeline, RenderPipelineDescriptor, ShaderModule, StoreOp, Surface, SurfaceCapabilities, SurfaceConfiguration, TextureView
+    BlendState, BufferDescriptor, BufferUsages, Color, ColorWrites, CommandEncoder, Device, Face,
+    FrontFace, MultisampleState, PipelineLayoutDescriptor, PrimitiveTopology,
+    RenderPassColorAttachment, RenderPassDescriptor, RenderPipeline, StoreOp, Surface,
+    SurfaceConfiguration, TextureView,
 };
 use winit::window::Window;
 
@@ -16,6 +22,8 @@ mod enums;
 mod instance;
 mod shader_store;
 mod utils;
+mod egui_integration;
+mod ui;
 
 pub struct FrameData {}
 
@@ -43,22 +51,36 @@ impl Core {
         let mut shader_store = ShaderStore::new(device.clone());
         Self::populate_shader_store(&mut shader_store);
         let encoder = device.create_command_encoder(&Default::default());
-        let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
+        let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor         {
             label: Some("Main Layout"),
             bind_group_layouts: &[],
             push_constant_ranges: &[],
         });
+
+
+        let pipeline_layout =
+            device.create_pipeline_layout(&pipeline_layout_descriptor(None, &[], &[]));
+
         let render_pipeline = device.create_render_pipeline(&render_pipeline_descriptor(
             Some("Main"),
-            layout,
-            shader_store.get(ShaderIdentifier::VERTEX_2D).unwrap(),
-            shader_store.get(ShaderIdentifier::FRAGMENT_2D).unwrap(),
+            &pipeline_layout,
+            create_vertex_state(shader_store.get(ShaderIdentifier::VERTEX_2D).unwrap(), &[]),
+            shader_store.get(ShaderIdentifier::FRAGMENT_2D),
             PrimitiveTopology::TriangleList,
             FrontFace::Cw,
             Some(Face::Front),
-            polygon_mode,
-            depth_stencil,
-            multisample,
+            wgpu::PolygonMode::Fill,
+            None,
+            MultisampleState {
+                count: 1,
+                mask: 0,
+                alpha_to_coverage_enabled: false,
+            },
+            &color_target_state(
+                surface_config.format,
+                Some(BlendState::REPLACE),
+                ColorWrites::ALL,
+            ),
         ));
 
         Ok(Self {
@@ -81,7 +103,11 @@ impl Core {
         }
     }
 
-    pub fn begin_render_pass(&mut self, label: &str, texture_view: TextureView) -> RenderPass {
+    pub fn begin_render_pass(
+        &mut self,
+        label: &str,
+        texture_view: TextureView,
+    ) -> wgpu::RenderPass {
         let desc = RenderPassDescriptor {
             label: Some(label),
             color_attachments: &[Some(RenderPassColorAttachment {
@@ -100,7 +126,7 @@ impl Core {
     }
 
     pub fn create_buffer<T>(
-        &mut self,
+        device: &Device,
         label: &str,
         usage: BufferUsages,
         mapped: bool,
@@ -117,7 +143,7 @@ impl Core {
             mapped_at_creation: mapped,
         };
 
-        self.device.create_buffer(&desc)
+        device.create_buffer(&desc)
     }
 
     fn populate_shader_store(shader_store: &mut ShaderStore) {
@@ -130,6 +156,9 @@ impl Core {
                 ShaderIdentifier::VERTEX_2D,
                 Path::new("shaders/2D_vertex_shader.spv"),
             ),
+            (   ShaderIdentifier::TEXTURE_FRAGMENT_2D,
+                Path::new("shaders/2D_texture_fragment_shader.spv")
+            )
         ];
 
         for (ident, path) in shader_pairs {

@@ -1,17 +1,13 @@
 use std::num::NonZero;
 
 use wgpu::{
-    BindGroupLayout, BlendState, ColorTargetState, ColorWrites, DepthStencilState, Face,
-    FragmentState, FrontFace, MultisampleState, PipelineCache, PipelineCompilationOptions,
-    PipelineLayout, PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology,
-    PushConstantRange, RenderPipelineDescriptor, ShaderModule, SurfaceConfiguration, TextureFormat,
-    VertexState,
+    BindGroupLayout, BlendState, Buffer, ColorTargetState, ColorWrites, DepthStencilState, Face, FragmentState, FrontFace, MultisampleState, PipelineCache, PipelineCompilationOptions, PipelineLayout, PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, PushConstantRange, RenderPipelineDescriptor, ShaderModule, SurfaceConfiguration, TextureFormat, VertexBufferLayout, VertexState
 };
 
 pub fn render_pipeline_descriptor<'a>(
     label: Option<&'a str>,
     layout: &'a PipelineLayout,
-    vertex_shader: &'a ShaderModule,
+    vertex_state: VertexState<'a>,
     fragment_shader: Option<&'a ShaderModule>,
     topology: PrimitiveTopology,
     front_face: FrontFace,
@@ -19,18 +15,12 @@ pub fn render_pipeline_descriptor<'a>(
     polygon_mode: PolygonMode,
     depth_stencil: Option<DepthStencilState>,
     multisample: MultisampleState,
-    format: TextureFormat,
     color_target_states: &'a [Option<ColorTargetState>],
 ) -> RenderPipelineDescriptor<'a> {
     RenderPipelineDescriptor {
         label,
         layout: Some(layout),
-        vertex: VertexState {
-            entry_point: Some("main"),
-            compilation_options: PipelineCompilationOptions::default(),
-            buffers: &[],
-            module: vertex_shader,
-        },
+        vertex: vertex_state,
         fragment: if fragment_shader.is_some() {
             Some(FragmentState {
                 entry_point: Some("main"),
@@ -43,7 +33,7 @@ pub fn render_pipeline_descriptor<'a>(
         },
         primitive: PrimitiveState {
             topology,
-            strip_index_format: Some(wgpu::IndexFormat::Uint32),
+            strip_index_format: None,
             front_face: front_face,
             cull_mode: cull_mode,
             unclipped_depth: false,
@@ -68,6 +58,16 @@ pub fn pipeline_layout_descriptor<'a>(
         push_constant_ranges,
     }
 }
+
+pub fn create_vertex_state<'a>(module: &'a ShaderModule, buffers: &'a [VertexBufferLayout]) -> VertexState<'a> {
+    VertexState {
+        module,
+        buffers,
+        entry_point: Some("main"),
+        compilation_options: PipelineCompilationOptions::default()
+    }
+}
+
 
 pub fn color_target_state(
     format: TextureFormat,

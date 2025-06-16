@@ -35,6 +35,6 @@ impl Renderer {
     }
     
     pub fn draw(&mut self) {
-        self.core.begin_render_pass("Main Render Pass", texture_view);
+//        self.core.begin_render_pass("Main Render Pass", texture_view);
     }
 }
