@@ -57,7 +57,6 @@ impl Core {
             push_constant_ranges: &[],
         });
 
-
         let pipeline_layout =
             device.create_pipeline_layout(&pipeline_layout_descriptor(None, &[], &[]));
 

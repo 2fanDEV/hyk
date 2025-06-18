@@ -32,10 +32,6 @@ impl EguiIntegration {
     }
     fn ui(&mut self, ctx: &Context) {
         let raw_input = self.state.take_egui_input(&self.window);
-        let settings_ui = Settings::create(ctx, |res| {
-            self.state.egui_ctx().run(raw_input.clone(), |ctx| {
-                res;
-            })
-        });
+        let settings_ui = Settings::create(&self.state, raw_input);
     }
 }

@@ -19,3 +19,4 @@ thiserror = "2.0.12"
 tokio = "1.45.1"
 wgpu = { version="25.0.2", features=["spirv", "glsl", "vulkan", "vulkan-portability"]}
 winit = "0.30.11"
+mockall = "0.13.1"
