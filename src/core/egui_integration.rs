@@ -1,37 +1,53 @@
 use std::sync::Arc;
 
-use egui::{Context, ViewportId};
-use egui_winit::State;
-use winit::window::{self, Theme, Window};
+use egui::{Context, ViewportId, WidgetText};
+use egui_winit::{EventResponse, State};
+use log::debug;
+use winit::{
+    event::WindowEvent,
+    window::{self, Theme, Window},
+};
 
 use super::ui::{Settings, Ui};
 
 pub struct EguiIntegration {
-    state: State,
-    window: Arc<Window>,
+    pub state: State,
+    pub window: Arc<Window>,
 }
 
 impl EguiIntegration {
-    fn new(window: Arc<Window>) -> Self {
-        let mut ctx = Context::default();
-        egui_extras::install_image_loaders(&ctx);
-        let state = State::new(
-            ctx.clone(),
+    pub fn new(window: Arc<Window>) -> Self {
+        let context = Context::default();
+        egui_extras::install_image_loaders(&context);
+        let mut state = State::new(
+            context,
             ViewportId::ROOT,
-            &window,
-            Some(window.scale_factor() as f32),
+            &*window,
+            Some(2.0 * window.scale_factor() as f32),
             Some(Theme::Dark),
             Some(1024 * 4),
         );
-
-        let x = || ctx.clone();
+        let raw_input = state.take_egui_input(&*window);
+        #[allow(irrefutable_let_patterns)]
+        while let font_output = state.egui_ctx().run(raw_input.clone(), |ctx| {}) {
+            if (font_output.textures_delta.is_empty()) {
+                break;
+            }
+        }
         Self {
             state,
             window: window.clone(),
         }
     }
-    fn ui(&mut self, ctx: &Context) {
-        let raw_input = self.state.take_egui_input(&self.window);
-        let settings_ui = Settings::create(&self.state, raw_input);
+
+    pub fn input(&mut self, event: &WindowEvent) -> EventResponse {
+        self.state.on_window_event(&self.window, event)
+    }
+
+    pub fn ui(&mut self, window: Arc<Window>) {
+        let raw_input = self.state.take_egui_input(&*window);
+        let settings_ui = Settings::create(&mut self.state, raw_input);
+        //       self.state
+        //         .handle_platform_output(&self.window, settings_ui.output.platform_output);
     }
 }

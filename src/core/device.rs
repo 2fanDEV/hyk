@@ -2,7 +2,7 @@ use std::ops::Deref;
 
 use anyhow::{anyhow, Result};
 use thiserror::Error;
-use wgpu::{Device, DeviceDescriptor, Features, Queue};
+use wgpu::{Device, DeviceDescriptor, Features, Limits, Queue};
 
 use super::instance::WGPUInstance;
 
@@ -31,7 +31,14 @@ impl WGPUDevice {
                 let device_descriptor = DeviceDescriptor {
                     required_features: Features::default()
                         | Features::PUSH_CONSTANTS
-                        | Features::SPIRV_SHADER_PASSTHROUGH,
+                        | Features::SPIRV_SHADER_PASSTHROUGH
+                        | Features::TEXTURE_BINDING_ARRAY,
+                    required_limits: Limits {
+                        max_binding_array_elements_per_shader_stage: 1,
+                        max_binding_array_sampler_elements_per_shader_stage: 1,
+                        max_push_constant_size: 64,
+                        ..Default::default()
+                    },
                     ..Default::default()
                 };
                 let (device, queue) =

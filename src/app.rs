@@ -3,7 +3,7 @@ use std::sync::Arc;
 use muda::dpi::LogicalSize;
 use winit::{
     application::ApplicationHandler,
-    window::{self, Window, WindowAttributes},
+    window::{Window, WindowAttributes},
 };
 
 use crate::renderer::Renderer;
@@ -22,7 +22,6 @@ impl ApplicationHandler for App {
         let window = Arc::new(event_loop.create_window(window_attributes).ok().unwrap());
         self.window =  Some(window.clone());
         self.renderer = Some(Renderer::new(window.clone()).unwrap());
-
     }
 
     fn window_event(
@@ -31,5 +30,7 @@ impl ApplicationHandler for App {
         window_id: winit::window::WindowId,
         event: winit::event::WindowEvent,
     ) {
+        self.renderer.as_mut().unwrap().core.integration.input(&event);
+        self.renderer.as_mut().unwrap().draw();
     }
 }

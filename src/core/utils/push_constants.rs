@@ -1,7 +1,3 @@
-use std::marker::PhantomData;
-
-use glm::{BaseFloat, GenFloatVec, GenMat, GenSquareMat, GenVec, Matrix2, Vec2};
-
 pub trait PushConstantType {
     fn as_raw(&self) -> &[u8];
 
@@ -11,6 +7,4 @@ pub trait PushConstantType {
 }
 
 #[cfg(test)]
-mod tests {
-
-}
+mod tests {}

@@ -1,7 +1,7 @@
 use std::{ops::Deref, sync::Arc};
 
 use anyhow::Result;
-use wgpu::{Adapter, Instance, InstanceDescriptor, RequestAdapterOptions};
+use wgpu::{Adapter, Instance, InstanceDescriptor, InstanceFlags, RequestAdapterOptions};
 
 #[derive(Debug)]
 pub struct WGPUInstance {

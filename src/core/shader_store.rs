@@ -31,11 +31,11 @@ impl ShaderStore {
         }
     }
 
-    pub fn insert(&mut self, name: ShaderIdentifier, path: &Path) {
+    pub fn insert(&mut self, name: ShaderIdentifier, label: Option<&str>, path: &Path) {
         let bytes = fs::read(path).unwrap();
         let path_bytes = make_spirv_raw(&bytes);
         let spir_v = self.device.create_shader_module(ShaderModuleDescriptor {
-            label: Some("Test"),
+            label,
             source: ShaderSource::SpirV(path_bytes),
         });
 
@@ -64,6 +64,7 @@ mod tests {
         let mut shader_store = ShaderStore::new(device.clone());
         shader_store.insert(
             ShaderIdentifier::FRAGMENT_2D,
+            None,
             &Path::new("shaders/2D_fragment_shader.spv"),
         );
         let contains = shader_store.contains(ShaderIdentifier::FRAGMENT_2D);

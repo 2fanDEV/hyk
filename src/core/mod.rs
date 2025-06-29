@@ -2,28 +2,32 @@ use std::{path::Path, sync::Arc};
 
 use anyhow::Result;
 use device::WGPUDevice;
+use egui::epaint::Vertex;
+use egui_integration::EguiIntegration;
 use enums::BufferInput;
+use geometry::{BindingGroupLayoutInformation, PushConstants, VertexStateInformation};
 use instance::WGPUInstance;
 use log::debug;
+use sampler::create_egui_sampler;
 use shader_store::{ShaderIdentifier, ShaderStore};
 use utils::pipeline_attachments::{
-    color_target_state, create_vertex_state, pipeline_layout_descriptor, render_pipeline_descriptor,
+    color_target_state, create_vertex_state, render_pipeline_descriptor,
 };
 use wgpu::{
-    BlendState, BufferDescriptor, BufferUsages, Color, ColorWrites, CommandEncoder, Device, Face,
-    FrontFace, MultisampleState, PipelineLayoutDescriptor, PrimitiveTopology,
-    RenderPassColorAttachment, RenderPassDescriptor, RenderPipeline, StoreOp, Surface,
-    SurfaceConfiguration, TextureView,
+    BindGroupDescriptor, BindGroupEntry, BindingResource, BlendState, BufferDescriptor, BufferUsages, Color, ColorWrites, CommandEncoder, Device, Extent3d, Face, FrontFace, MultisampleState, PipelineLayoutDescriptor, PresentMode, PrimitiveTopology, RenderPassColorAttachment, RenderPassDescriptor, RenderPipeline, SamplerDescriptor, StoreOp, Surface, SurfaceConfiguration, TextureAspect, TextureDescriptor, TextureFormat, TextureUsages, TextureViewDescriptor
 };
 use winit::window::Window;
 
 mod device;
+mod egui_integration;
 mod enums;
 mod instance;
 mod shader_store;
-mod utils;
-mod egui_integration;
 mod ui;
+mod utils;
+mod sampler;
+pub mod buffers;
+pub mod geometry;
 
 pub struct FrameData {}
 
@@ -35,35 +39,39 @@ pub struct Core {
     pub shader_store: ShaderStore,
     pub encoder: CommandEncoder,
     pub render_pipeline: RenderPipeline,
+    pub integration: EguiIntegration,
 }
 
 impl Core {
     pub fn init(window: Arc<Window>) -> Result<Self> {
         let instance = WGPUInstance::init_instance()?;
         let window_size = window.inner_size();
+        let mut integration = EguiIntegration::new(window.clone());
+        integration.ui(window.clone());
         let surface = instance.create_surface(window)?;
         let device = Arc::new(WGPUDevice::create_device(&instance)?);
         let surface_capabilities = surface.get_capabilities(&instance.adapter);
-        let surface_config = surface
+        let mut surface_config = surface
             .get_default_config(&instance.adapter, window_size.width, window_size.height)
             .unwrap();
+        surface_config.present_mode = PresentMode::Fifo;
+        surface.configure(&device, &surface_config);
         let surface_format = surface_capabilities.formats;
         let mut shader_store = ShaderStore::new(device.clone());
         Self::populate_shader_store(&mut shader_store);
         let encoder = device.create_command_encoder(&Default::default());
-        let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor         {
+        let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: Some("Main Layout"),
-            bind_group_layouts: &[],
-            push_constant_ranges: &[],
+            bind_group_layouts: &Vertex::binding_group_layouts(&device).iter().map(|mp| mp).collect::<Vec<_>>(),
+            push_constant_ranges: &[Vertex::push_constant_ranges()],
         });
-
-        let pipeline_layout =
-            device.create_pipeline_layout(&pipeline_layout_descriptor(None, &[], &[]));
-
         let render_pipeline = device.create_render_pipeline(&render_pipeline_descriptor(
             Some("Main"),
             &pipeline_layout,
-            create_vertex_state(shader_store.get(ShaderIdentifier::VERTEX_2D).unwrap(), &[]),
+            create_vertex_state(
+                shader_store.get(ShaderIdentifier::VERTEX_2D).unwrap(),
+                &Vertex::vertex_state()
+            ),
             shader_store.get(ShaderIdentifier::FRAGMENT_2D),
             PrimitiveTopology::TriangleList,
             FrontFace::Cw,
@@ -81,7 +89,7 @@ impl Core {
                 ColorWrites::ALL,
             ),
         ));
-
+            
         Ok(Self {
             instance,
             surface,
@@ -90,6 +98,7 @@ impl Core {
             device: device,
             encoder: encoder,
             render_pipeline,
+            integration,
         })
     }
 
@@ -105,8 +114,10 @@ impl Core {
     pub fn begin_render_pass(
         &mut self,
         label: &str,
-        texture_view: TextureView,
-    ) -> wgpu::RenderPass {
+    ) -> Result<wgpu::RenderPass> {
+        let surface_texture = self.surface.get_current_texture()?;
+        let texture_view = surface_texture.texture.create_view(&TextureViewDescriptor::default());
+
         let desc = RenderPassDescriptor {
             label: Some(label),
             color_attachments: &[Some(RenderPassColorAttachment {
@@ -121,7 +132,36 @@ impl Core {
             timestamp_writes: None,
             occlusion_query_set: None,
         };
-        self.encoder.begin_render_pass(&desc)
+
+        let mut render_pass = self.encoder.begin_render_pass(&desc);
+        let img = self.device.create_texture(&TextureDescriptor {
+            label: Some("Test Texture Image"),
+            mip_level_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba16Float,
+            sample_count: 1,
+            size: Extent3d::default(),
+            usage: TextureUsages::TEXTURE_BINDING,
+            view_formats: &[TextureFormat::Rgba16Float]
+        });
+        
+        render_pass.set_pipeline(&self.render_pipeline);       
+        let bind_group = self.device.create_bind_group(&BindGroupDescriptor {
+            label: Some("Bind Group Test"),
+            layout: &Vertex::binding_group_layouts(&self.device)[0],
+            entries: &[BindGroupEntry {
+                binding: 0,
+                resource: BindingResource::TextureView(&img.create_view(&TextureViewDescriptor::default()))
+            }, BindGroupEntry {
+                binding: 1,
+                resource: BindingResource::Sampler(&create_egui_sampler(&self.device)?)
+            }]
+        });
+
+        render_pass.set_bind_group(0, &bind_group, &[]);
+        render_pass.set_viewport(0.0, 0.0, 1920.0, 1080.0, 0.0, 0.0);
+        render_pass.set_scissor_rect(0, 0, 1920, 1080);
+        Ok(render_pass)
     }
 
     pub fn create_buffer<T>(
@@ -146,22 +186,31 @@ impl Core {
     }
 
     fn populate_shader_store(shader_store: &mut ShaderStore) {
+        let mut counter = 0;
         let shader_pairs = [
             (
                 ShaderIdentifier::FRAGMENT_2D,
+                Some("2D_FRAGMENT"),
                 Path::new("shaders/2D_fragment_shader.spv"),
             ),
             (
                 ShaderIdentifier::VERTEX_2D,
+                Some("2D_VERTEX_SHADER"),
                 Path::new("shaders/2D_vertex_shader.spv"),
             ),
-            (   ShaderIdentifier::TEXTURE_FRAGMENT_2D,
-                Path::new("shaders/2D_texture_fragment_shader.spv")
-            )
+            (
+                ShaderIdentifier::TEXTURE_FRAGMENT_2D,
+                Some("TEXTURE_FRAGMENT"),
+                Path::new("shaders/2D_texture_fragment_shader.spv"),
+            ),
         ];
 
-        for (ident, path) in shader_pairs {
-            shader_store.insert(ident, &path);
+        for (ident, label, path) in shader_pairs {
+            let unnamed = Some("UNNAMED_".to_string() + counter.to_string().as_str());
+            if label.is_none() {
+                counter += 1;
+            }
+            shader_store.insert(ident, label.or_else(|| unnamed.as_deref()), &path);
         }
     }
 }

@@ -1,7 +1,11 @@
 use std::num::NonZero;
 
 use wgpu::{
-    BindGroupLayout, BlendState, Buffer, ColorTargetState, ColorWrites, DepthStencilState, Face, FragmentState, FrontFace, MultisampleState, PipelineCache, PipelineCompilationOptions, PipelineLayout, PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, PushConstantRange, RenderPipelineDescriptor, ShaderModule, SurfaceConfiguration, TextureFormat, VertexBufferLayout, VertexState
+    BindGroupLayout, BlendState, Buffer, ColorTargetState, ColorWrites, DepthStencilState, Face,
+    FragmentState, FrontFace, MultisampleState, PipelineCache, PipelineCompilationOptions,
+    PipelineLayout, PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology,
+    PushConstantRange, RenderPipelineDescriptor, ShaderModule, SurfaceConfiguration, TextureFormat,
+    VertexBufferLayout, VertexState,
 };
 
 pub fn render_pipeline_descriptor<'a>(
@@ -42,7 +46,7 @@ pub fn render_pipeline_descriptor<'a>(
         },
         depth_stencil,
         multisample,
-        multiview: NonZero::new(1),
+        multiview: None,
         cache: None,
     }
 }
@@ -59,15 +63,17 @@ pub fn pipeline_layout_descriptor<'a>(
     }
 }
 
-pub fn create_vertex_state<'a>(module: &'a ShaderModule, buffers: &'a [VertexBufferLayout]) -> VertexState<'a> {
+pub fn create_vertex_state<'a>(
+    module: &'a ShaderModule,
+    buffer_layouts: &'a [VertexBufferLayout],
+) -> VertexState<'a> {
     VertexState {
         module,
-        buffers,
+        buffers: buffer_layouts,
         entry_point: Some("main"),
-        compilation_options: PipelineCompilationOptions::default()
+        compilation_options: PipelineCompilationOptions::default(),
     }
 }
-
 
 pub fn color_target_state(
     format: TextureFormat,
