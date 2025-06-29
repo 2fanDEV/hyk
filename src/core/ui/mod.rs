@@ -1,16 +1,14 @@
-use anyhow::Result;
 use egui::{
-    epaint::{Primitive, Vertex}, CentralPanel, ClippedPrimitive, FullOutput, RawInput, Shape, TextureId, ViewportId
+    epaint::{Primitive, Vertex}, ClippedPrimitive, RawInput, Shape, TextureId, ViewportId
 };
 use egui_winit::State;
 use log::debug;
-use wgpu::Device;
 
-use super::buffers::ElementBuffer;
 
 pub trait Ui {
     fn create(state: &mut State, raw_input: RawInput) -> Self;
-    fn meshes() -> MeshDetails;
+    fn primitives(&self) -> &[Vec<ClippedPrimitive>];
+    fn meshes(&self) -> MeshDetails;
 }
 
 #[derive(Debug)]
@@ -54,8 +52,16 @@ impl Ui for Settings {
         }
     }
     
-    fn meshes() -> MeshDetails {
-        
+    fn meshes(&self) -> MeshDetails {
+        MeshDetails {
+            vertices: vec![],
+            indices: vec![],
+            texture_id: egui::TextureId::Managed(0)
+        }       
+    }
+
+    fn primitives(&self) -> &[Vec<ClippedPrimitive>] {
+       &self.primitives
     }
 }
 
@@ -102,8 +108,8 @@ mod tests {
             Ok(DisplayHandle::uikit())
         }
     }
-    #[test]
-    fn create_mesh_details_test() {
+
+    fn init() -> impl Ui {
         let ctx = Context::default();
 
         let display = MockHasDisplayHandle::new();
@@ -116,8 +122,20 @@ mod tests {
             Some(0),
         );
         let raw_input = RawInput::default();
-        let settings_ui = Settings::create(&mut state, raw_input);
-        println!("WTF {:?}", settings_ui.primitives);
-        assert!(!settings_ui.primitives.is_empty());
+        Settings::create(&mut state, raw_input)
+    }
+
+    #[test]
+    fn create_ui_test() {
+        let ui = init();
+        assert!(!ui.primitives().is_empty());
+    }
+
+    #[test]
+    fn create_mesh_details_test() {
+        let ui = init();
+        let meshes = ui.meshes();
+        assert!(!meshes.indices.is_empty());
+        assert!(!meshes.vertices.is_empty());
     }
 }
