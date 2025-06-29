@@ -1,5 +1,5 @@
 use anyhow::Result;
-use wgpu::{ naga::back::msl::sampler::BorderColor, CompareFunction, Device, Sampler, SamplerBorderColor, SamplerDescriptor};
+use wgpu::{ Device, Sampler, SamplerBorderColor, SamplerDescriptor};
 
 pub fn create_egui_sampler(device: &Device) -> Result<Sampler> {
     Ok(device.create_sampler(&SamplerDescriptor {
