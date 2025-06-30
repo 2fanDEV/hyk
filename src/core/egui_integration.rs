@@ -2,13 +2,13 @@ use std::sync::Arc;
 
 use egui::{Context, ViewportId, WidgetText};
 use egui_winit::{EventResponse, State};
-use log::debug;
 use winit::{
     event::WindowEvent,
-    window::{self, Theme, Window},
+    window::{Theme, Window},
 };
 
-use super::ui::{Settings, Ui};
+use super::ui::{settings_menu::SettingsMenu, Ui};
+
 
 pub struct EguiIntegration {
     pub state: State,
@@ -46,7 +46,7 @@ impl EguiIntegration {
 
     pub fn ui(&mut self, window: Arc<Window>) {
         let raw_input = self.state.take_egui_input(&*window);
-        let settings_ui = Settings::create(&mut self.state, raw_input);
+        let settings_ui = SettingsMenu::create(&mut self.state, raw_input);
         //       self.state
         //         .handle_platform_output(&self.window, settings_ui.output.platform_output);
     }

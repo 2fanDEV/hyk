@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use anyhow::Result;
 use bytemuck::{bytes_of, cast_slice, NoUninit};
 use wgpu::{util::{BufferInitDescriptor, DeviceExt}, Buffer, BufferDescriptor, BufferUsages, Device};
@@ -15,6 +17,14 @@ pub struct ElementBuffer<'a, T> {
     buffer: Buffer,
     size: u32,
     elements: &'a [T]
+}
+
+impl <'a, T> Deref for ElementBuffer<'a, T> {
+    type Target = Buffer;
+
+    fn deref(&self) -> &Self::Target {
+        &self.buffer
+    }
 }
 
 impl <'a, T> ElementBuffer<'a, T> {
