@@ -7,8 +7,7 @@ use winit::{
     window::{Theme, Window},
 };
 
-use super::ui::{settings_menu::SettingsMenu, Ui};
-
+use super::ui::{settings_menu::SettingsMenu, Meshes, Ui};
 
 pub struct EguiIntegration {
     pub state: State,
@@ -44,9 +43,10 @@ impl EguiIntegration {
         self.state.on_window_event(&self.window, event)
     }
 
-    pub fn ui(&mut self, window: Arc<Window>) {
+    pub fn ui(&mut self, window: Arc<Window>) -> Vec<Meshes> {
         let raw_input = self.state.take_egui_input(&*window);
         let settings_ui = SettingsMenu::create(&mut self.state, raw_input);
+        settings_ui.meshes()
         //       self.state
         //         .handle_platform_output(&self.window, settings_ui.output.platform_output);
     }

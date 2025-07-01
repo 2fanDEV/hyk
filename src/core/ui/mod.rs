@@ -6,9 +6,9 @@ pub mod settings_menu;
 
 #[derive(Debug)]
 pub struct Meshes {
-    vertices: Vec<Vertex>,
-    indices: Vec<u32>,
-    texture_id: TextureId,
+    pub vertices: Vec<Vertex>,
+    pub indices: Vec<u32>,
+    pub texture_id: TextureId,
 }
 
 pub trait Ui {
