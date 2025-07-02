@@ -1,6 +1,6 @@
 use std::{path::Path, sync::Arc};
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use buffers::{ElementBuffer, MeshBuffer};
 use device::WGPUDevice;
 use egui::epaint::Vertex;
@@ -16,11 +16,11 @@ use utils::pipeline_attachments::{
 };
 use wgpu::{
     BindGroupDescriptor, BindGroupEntry, BindingResource, BlendState, BufferDescriptor,
-    BufferUsages, Color, ColorWrites, CommandEncoder, Device, Extent3d, Face, FrontFace,
-    MultisampleState, PipelineLayoutDescriptor, PresentMode, PrimitiveTopology,
-    RenderPassColorAttachment, RenderPassDescriptor, RenderPipeline, SamplerDescriptor, StoreOp,
-    Surface, SurfaceConfiguration, TextureAspect, TextureDescriptor, TextureFormat, TextureUsages,
-    TextureViewDescriptor,
+    BufferSlice, BufferUsages, Color, ColorWrites, CommandEncoder, CommandEncoderDescriptor,
+    Device, Extent3d, Face, FrontFace, IndexFormat, MultisampleState, PipelineLayoutDescriptor,
+    PresentMode, PrimitiveTopology, RenderPassColorAttachment, RenderPassDescriptor,
+    RenderPipeline, SamplerDescriptor, StoreOp, Surface, SurfaceConfiguration, TextureAspect,
+    TextureDescriptor, TextureFormat, TextureUsages, TextureViewDescriptor,
 };
 use winit::window::Window;
 
@@ -43,10 +43,9 @@ pub struct Core {
     pub surface_config: SurfaceConfiguration,
     pub device: Arc<WGPUDevice>,
     pub shader_store: ShaderStore,
-    pub encoder: CommandEncoder,
     pub render_pipeline: RenderPipeline,
     pub integration: EguiIntegration,
-    pub egui_buffers: Vec<MeshBuffer<'static, Vertex>>,
+    pub egui_buffers: Vec<MeshBuffer<Vertex>>,
 }
 
 impl Core {
@@ -65,14 +64,14 @@ impl Core {
                         &device,
                         Some("UI_Elements"),
                         BufferUsages::VERTEX,
-                        buffers::ElementType::VECTOR(&mesh.vertices),
+                        buffers::ElementType::VECTOR(mesh.vertices),
                     )
                     .unwrap(),
                     ElementBuffer::new_mapped(
                         &device,
                         Some("UI_Elements"),
-                        BufferUsages::VERTEX,
-                        buffers::ElementType::VECTOR(&mesh.indices),
+                        BufferUsages::INDEX,
+                        buffers::ElementType::VECTOR(mesh.indices),
                     )
                     .unwrap(),
                 )
@@ -87,7 +86,6 @@ impl Core {
         let surface_format = surface_capabilities.formats;
         let mut shader_store = ShaderStore::new(device.clone());
         Self::populate_shader_store(&mut shader_store);
-        let encoder = device.create_command_encoder(&Default::default());
         let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: Some("Main Layout"),
             bind_group_layouts: &Vertex::binding_group_layouts(&device)
@@ -96,6 +94,7 @@ impl Core {
                 .collect::<Vec<_>>(),
             push_constant_ranges: &[Vertex::push_constant_ranges()],
         });
+
         let render_pipeline = device.create_render_pipeline(&render_pipeline_descriptor(
             Some("Main"),
             &pipeline_layout,
@@ -127,7 +126,6 @@ impl Core {
             surface_config,
             shader_store,
             device: device,
-            encoder: encoder,
             render_pipeline,
             integration,
             egui_buffers,
@@ -143,7 +141,12 @@ impl Core {
         }
     }
 
-    pub fn begin_render_pass(&mut self, label: &str) -> Result<wgpu::RenderPass> {
+    pub fn egui_pass(&mut self, label: &str) -> Result<()> {
+        let mut encoder = self
+            .device
+            .create_command_encoder(&CommandEncoderDescriptor {
+                label: Some("EGUI Command Encoder"),
+            });
         let surface_texture = self.surface.get_current_texture()?;
         let texture_view = surface_texture
             .texture
@@ -164,40 +167,66 @@ impl Core {
             occlusion_query_set: None,
         };
 
-        let mut render_pass = self.encoder.begin_render_pass(&desc);
-        let img = self.device.create_texture(&TextureDescriptor {
-            label: Some("Test Texture Image"),
-            mip_level_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba16Float,
-            sample_count: 1,
-            size: Extent3d::default(),
-            usage: TextureUsages::TEXTURE_BINDING,
-            view_formats: &[TextureFormat::Rgba16Float],
-        });
-
-        render_pass.set_pipeline(&self.render_pipeline);
-        let bind_group = self.device.create_bind_group(&BindGroupDescriptor {
-            label: Some("Bind Group Test"),
-            layout: &Vertex::binding_group_layouts(&self.device)[0],
-            entries: &[
-                BindGroupEntry {
-                    binding: 0,
-                    resource: BindingResource::TextureView(
-                        &img.create_view(&TextureViewDescriptor::default()),
-                    ),
+        // extra scope for encoder borrow
+        {
+            let mut render_pass = encoder.begin_render_pass(&desc);
+            let img = self.device.create_texture(&TextureDescriptor {
+                label: Some("Test Texture Image"),
+                mip_level_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Rgba8UnormSrgb,
+                sample_count: 1,
+                size: Extent3d {
+                    width: 1920,
+                    height: 1080,
+                    depth_or_array_layers: 1
                 },
-                BindGroupEntry {
-                    binding: 1,
-                    resource: BindingResource::Sampler(&create_egui_sampler(&self.device)?),
-                },
-            ],
-        });
+                usage: TextureUsages::TEXTURE_BINDING,
+                view_formats: &[TextureFormat::Rgba8UnormSrgb],
+            });
 
-        render_pass.set_bind_group(0, &bind_group, &[]);
-        render_pass.set_viewport(0.0, 0.0, 1920.0, 1080.0, 0.0, 0.0);
-        render_pass.set_scissor_rect(0, 0, 1920, 1080);
-        Ok(render_pass)
+            render_pass.set_pipeline(&self.render_pipeline);
+
+            let bind_group = self.device.create_bind_group(&BindGroupDescriptor {
+                label: Some("Bind Group Test"),
+                layout: &Vertex::binding_group_layouts(&self.device)[0],
+                entries: &[
+                    BindGroupEntry {
+                        binding: 0,
+                        resource: BindingResource::TextureView(
+                            &img.create_view(&TextureViewDescriptor::default()),
+                        ),
+                    },
+                    BindGroupEntry {
+                        binding: 1,
+                        resource: BindingResource::Sampler(&create_egui_sampler(&self.device)?),
+                    },
+                ],
+            });
+
+            render_pass.set_bind_group(0, &bind_group, &[]);
+            render_pass.set_viewport(0.0, 0.0, 1920.0, 1080.0, 0.0, 0.0);
+            render_pass.set_scissor_rect(0, 0, 1920, 1080);
+
+            for mesh_buffer in &self.egui_buffers {
+                render_pass.set_vertex_buffer(0, mesh_buffer.vertex_buffer.slice(..));
+                render_pass
+                    .set_index_buffer(mesh_buffer.index_buffer.slice(..), IndexFormat::Uint32);
+                let elements = match &mesh_buffer.index_buffer.elements {
+                    buffers::ElementType::VECTOR(items) => items,
+                    buffers::ElementType::SINGLE_ELEMENT(_) => {
+                        return Err(anyhow!("In this pass there should never be a single item"))
+                    }
+                };
+                render_pass.draw_indexed(0..elements.iter().len() as u32, 0, 0..1);
+            }
+        }
+
+        let command_buffer = encoder.finish();
+        self.device.queue.submit(std::iter::once(command_buffer));
+        surface_texture.present();
+
+        Ok(())
     }
 
     pub fn create_buffer<T>(

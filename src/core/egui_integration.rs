@@ -29,7 +29,7 @@ impl EguiIntegration {
         let raw_input = state.take_egui_input(&*window);
         #[allow(irrefutable_let_patterns)]
         while let font_output = state.egui_ctx().run(raw_input.clone(), |ctx| {}) {
-            if (font_output.textures_delta.is_empty()) {
+            if font_output.textures_delta.is_empty() {
                 break;
             }
         }

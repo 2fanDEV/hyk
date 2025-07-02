@@ -1,4 +1,3 @@
-use std::num::NonZero;
 
 use wgpu::{
     BindGroupLayout, BlendState, Buffer, ColorTargetState, ColorWrites, DepthStencilState, Face,

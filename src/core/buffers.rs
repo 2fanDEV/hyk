@@ -7,18 +7,18 @@ use wgpu::{util::{BufferInitDescriptor, DeviceExt}, Buffer, BufferDescriptor, Bu
 pub trait BufferElements {}
 
 #[allow(non_camel_case_types)]
-pub enum ElementType<'a, T> {
-    VECTOR(&'a [T]),
-    SINGLE_ELEMENT(&'a T)
+pub enum ElementType<T> {
+    VECTOR(Vec<T>),
+    SINGLE_ELEMENT(T)
 }
 
-pub struct MeshBuffer<'a, T> {
-    pub vertex_buffer: ElementBuffer<'a, T>,
-    pub index_buffer: ElementBuffer<'a, u32>
+pub struct MeshBuffer<T> {
+    pub vertex_buffer: ElementBuffer<T>,
+    pub index_buffer: ElementBuffer<u32>
 }
 
-impl <'a, T> MeshBuffer<'a, T> {
-    pub fn new(vertex_buffer: ElementBuffer<'a, T>, index_buffer: ElementBuffer<'a, u32>) -> Self {
+impl <T> MeshBuffer<T> {
+    pub fn new(vertex_buffer: ElementBuffer<T>, index_buffer: ElementBuffer<u32>) -> Self {
         Self {
             vertex_buffer,
             index_buffer
@@ -27,13 +27,13 @@ impl <'a, T> MeshBuffer<'a, T> {
 }
 
 
-pub struct ElementBuffer<'a, T> {
+pub struct ElementBuffer<T> {
     buffer: Buffer,
-    size: u32,
-    elements: ElementType<'a, T>
+    pub size: u32,
+    pub elements: ElementType<T>
 }
 
-impl <'a, T> Deref for ElementBuffer<'a, T> {
+impl <T> Deref for ElementBuffer<T> {
     type Target = Buffer;
 
     fn deref(&self) -> &Self::Target {
@@ -41,10 +41,10 @@ impl <'a, T> Deref for ElementBuffer<'a, T> {
     }
 }
 
-impl <'a, T> ElementBuffer<'a, T> {
-    pub fn new_mapped(device: &Device, label: Option<&str>, usage: BufferUsages, elements: ElementType<'a, T>) -> Result<ElementBuffer<'a, T>>
+impl <T> ElementBuffer<T> {
+    pub fn new_mapped(device: &Device, label: Option<&str>, usage: BufferUsages, elements: ElementType<T>) -> Result<ElementBuffer<T>>
     where T: NoUninit {
-        let elems: &[u8] = match elements {
+        let elems: &[u8] = match &elements {
             ElementType::VECTOR(items) => cast_slice(items),
             ElementType::SINGLE_ELEMENT(item) => bytes_of(item) ,
         };
