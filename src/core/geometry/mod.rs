@@ -20,7 +20,7 @@ pub trait PushConstants {
 impl VertexStateInformation for Vertex {
     fn vertex_state() -> Vec<VertexBufferLayout<'static>> {
         vec![VertexBufferLayout {
-            array_stride: 16,
+            array_stride: 32,
             step_mode: VertexStepMode::Vertex,
             attributes: &[
                 VertexAttribute {
@@ -30,12 +30,12 @@ impl VertexStateInformation for Vertex {
                 },
                 VertexAttribute {
                     format: VertexFormat::Float32x2,
-                    offset: 0,
+                    offset: 8,
                     shader_location: 1,
                 },
                 VertexAttribute {
                     format: VertexFormat::Float32x4,
-                    offset: 0,
+                    offset: 16,
                     shader_location: 2,
                 },
             ],
