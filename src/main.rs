@@ -6,6 +6,7 @@ fn main() {
     println!("Hello, world!");
     let mut app = App::default();
     let event_loop = EventLoop::new().unwrap();
+    event_loop.set_control_flow(winit::event_loop::ControlFlow::Poll);
     env_logger::Builder::new()
         .filter_level(LevelFilter::Debug)
         .try_init()

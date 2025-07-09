@@ -1,5 +1,5 @@
 use anyhow::Result;
-use wgpu::{ Device, Sampler, SamplerBorderColor, SamplerDescriptor};
+use wgpu::{Device, Sampler, SamplerBorderColor, SamplerDescriptor};
 
 pub fn create_egui_sampler(device: &Device) -> Result<Sampler> {
     Ok(device.create_sampler(&SamplerDescriptor {
@@ -10,10 +10,7 @@ pub fn create_egui_sampler(device: &Device) -> Result<Sampler> {
         mag_filter: wgpu::FilterMode::Linear,
         min_filter: wgpu::FilterMode::Linear,
         mipmap_filter: wgpu::FilterMode::Nearest,
-        lod_min_clamp: 0.0,
-        lod_max_clamp: 0.0,
-        compare: None,
-        anisotropy_clamp: 1,
-        border_color: Some(SamplerBorderColor::OpaqueBlack)
+        border_color: Some(SamplerBorderColor::OpaqueBlack),
+        ..Default::default()
     }))
 }

@@ -14,13 +14,13 @@ pub trait BindingGroupLayoutInformation {
 }
 
 pub trait PushConstants {
-    fn push_constant_ranges() -> PushConstantRange;
+    fn push_constant_ranges<T>() -> PushConstantRange;
 }
 
 impl VertexStateInformation for Vertex {
     fn vertex_state() -> Vec<VertexBufferLayout<'static>> {
         vec![VertexBufferLayout {
-            array_stride: 32,
+            array_stride: 20,
             step_mode: VertexStepMode::Vertex,
             attributes: &[
                 VertexAttribute {
@@ -34,7 +34,7 @@ impl VertexStateInformation for Vertex {
                     shader_location: 1,
                 },
                 VertexAttribute {
-                    format: VertexFormat::Float32x4,
+                    format: VertexFormat::Unorm8x4,
                     offset: 16,
                     shader_location: 2,
                 },
@@ -44,8 +44,8 @@ impl VertexStateInformation for Vertex {
 }
 
 impl PushConstants for Vertex {
-    fn push_constant_ranges() -> PushConstantRange {
-        PushConstantRange { stages: ShaderStages::VERTEX, range: 0..64 }
+    fn push_constant_ranges<T>() -> PushConstantRange {
+        PushConstantRange { stages: ShaderStages::VERTEX, range: 0..size_of::<T>() as u32 }
     }
 }
 

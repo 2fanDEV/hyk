@@ -1,60 +1,61 @@
-use egui::{ClippedPrimitive, RawInput, Shape};
+use egui::RawInput;
 use egui_winit::State;
 use log::debug;
+use wgpu::{Extent3d, Texture, TextureDimension, TextureView};
 
-use crate::core::utils::ranged::Ranged;
+use crate::core::{device::WGPUDevice, utils::ranged::Ranged};
 
 use super::{create_mesh_details, Meshes, Ui};
 
 pub struct SettingsMenu {
     pub volume: Ranged<u8>,
-    primitives: Vec<ClippedPrimitive>,
+    pixels_per_point: f32,
+    texture: Option<Texture>,
+    pub texture_view: Option<TextureView>,
+    closed: bool,
+    is_content_expanded_target: bool,
+    max_content_height: f32, //
 }
 
 impl Ui for SettingsMenu {
-    fn create(state: &mut State, raw_input: RawInput) -> Self {
-        let ctx = state.egui_ctx();
-        println!("TEST: {:p}", ctx);
-        let mut clipped_primitives: Vec<ClippedPrimitive> = Vec::new();
-        #[allow(irrefutable_let_patterns)]
-        while let output = state.egui_ctx().run(raw_input.clone(), |ctx| {
-            egui::Window::new("Tiesto")
-                .title_bar(true)
-                .vscroll(true)
-                .resizable(true)
-                .open(&mut true)
-                .show(ctx, |ui| {
-                    ui.label("Hello World");
-                    if ui.button("Test").clicked() {
-                        debug!("Test button");
-                    }
-                })
-                .unwrap();
-        }) {
-            if !output
-                .shapes
-                .iter()
-                .find(|pred| !pred.shape.eq(&Shape::Noop))
-                .is_some()
-            {
-                continue;
-            }
-            clipped_primitives = ctx.tessellate(output.shapes, ctx.pixels_per_point());
-            break;
-        }
-
-        debug!("Settings UI created");
+    fn new(device: &WGPUDevice, state: &mut State, raw_input: RawInput) -> Self {
         Self {
             volume: Ranged::new(50u8, 0, 100).unwrap(),
-            primitives: clipped_primitives,
+            texture: None,
+            texture_view: None,
+            closed: false,
+            pixels_per_point: state.egui_ctx().pixels_per_point(),
+            is_content_expanded_target: true,
+            max_content_height: 0.0,
         }
     }
 
-    fn meshes(&self) -> Vec<Meshes> {
-        create_mesh_details(&self.primitives)
+    fn inner_ui(&self, ui: &mut egui::Ui) {
+        ui.label("Hello world!");
+        if ui.button("Click me").clicked() {
+            debug!("CLICKED");
+        }
+        /*  ui.image(egui::include_image!(
+            "/Users/zapzap/Projects/piplup/shaders/ferris.png"
+        )); */
+        if ui.button("WHAT THE HEEEEEEELLL").clicked() {
+            debug!("WHAT THE HEEEEELL");
+        }
     }
 
-    fn primitives(&self) -> &[ClippedPrimitive] {
-        &self.primitives
+    fn get_texture(&mut self) -> Option<Texture> {
+        self.texture.clone()
+    }
+
+    fn texture(&mut self, texture: Texture) {
+        self.texture = Some(texture);
+    }
+
+    fn get_texture_view(&mut self) -> Option<TextureView> {
+        self.texture_view.clone()
+    }
+
+    fn texture_view(&mut self, texture_view: TextureView) {
+        self.texture_view = Some(texture_view);
     }
 }

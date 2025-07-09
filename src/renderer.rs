@@ -27,16 +27,18 @@ impl Renderer {
     }
 
     pub fn render(&mut self) {
-        self.draw();
+        self.draw().unwrap();
         self.frame_index = (self.frame_index + 1) % MAX_FRAMES;
     }
 
     pub fn update(&mut self) {
-            
+        self.core.update_egui()       
     }
     
     pub fn draw(&mut self) -> Result<()> {
         let egui_render_pass = self.core.egui_pass("Main Render Pass").unwrap();
+
+        self.update();
         Ok(())
     }
 }

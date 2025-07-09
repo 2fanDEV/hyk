@@ -1,13 +1,16 @@
 use std::sync::Arc;
 
-use egui::{Context, ViewportId, WidgetText};
+use egui::{Context, ViewportId};
 use egui_winit::{EventResponse, State};
 use winit::{
     event::WindowEvent,
     window::{Theme, Window},
 };
 
-use super::ui::{settings_menu::SettingsMenu, Meshes, Ui};
+use super::{
+    device::WGPUDevice,
+    ui::{settings_menu::SettingsMenu, Ui},
+};
 
 pub struct EguiIntegration {
     pub state: State,
@@ -18,7 +21,7 @@ impl EguiIntegration {
     pub fn new(window: Arc<Window>) -> Self {
         let context = Context::default();
         egui_extras::install_image_loaders(&context);
-        let mut state = State::new(
+        let state = State::new(
             context,
             ViewportId::ROOT,
             &*window,
@@ -26,13 +29,6 @@ impl EguiIntegration {
             Some(Theme::Dark),
             Some(1024 * 4),
         );
-        let raw_input = state.take_egui_input(&*window);
-        #[allow(irrefutable_let_patterns)]
-        while let font_output = state.egui_ctx().run(raw_input.clone(), |ctx| {}) {
-            if font_output.textures_delta.is_empty() {
-                break;
-            }
-        }
         Self {
             state,
             window: window.clone(),
@@ -43,11 +39,14 @@ impl EguiIntegration {
         self.state.on_window_event(&self.window, event)
     }
 
-    pub fn ui(&mut self, window: Arc<Window>) -> Vec<Meshes> {
+    pub fn ui(&mut self, device: Arc<WGPUDevice>, window: Arc<Window>) -> SettingsMenu {
         let raw_input = self.state.take_egui_input(&*window);
-        let settings_ui = SettingsMenu::create(&mut self.state, raw_input);
-        settings_ui.meshes()
-        //       self.state
-        //         .handle_platform_output(&self.window, settings_ui.output.platform_output);
+        let settings_ui = SettingsMenu::new(&device, &mut self.state, raw_input);
+        settings_ui
+    }
+
+    pub fn update_ui(&mut self, settings: &mut SettingsMenu, device: Arc<WGPUDevice>)  {
+        let raw_input = self.state.take_egui_input(&self.window);
+        settings.update(&device, &mut self.state, raw_input);
     }
 }

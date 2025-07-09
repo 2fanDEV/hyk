@@ -1,0 +1,123 @@
+use egui::{
+    ClippedPrimitive, Color32, Context, Frame, InnerResponse, RawInput, Rect, Shadow, Slider, Vec2,
+    Visuals, WidgetText,
+};
+use egui_winit::State;
+use log::debug;
+use wgpu::{Extent3d, Texture, TextureDimension, TextureView};
+
+use crate::core::{device::WGPUDevice, utils::ranged::Ranged};
+
+use super::{create_mesh_details, Meshes, Ui};
+
+pub struct SettingsMenu {
+    pub volume: Ranged<u8>,
+    pub primitives: Vec<ClippedPrimitive>,
+    pixels_per_point: f32,
+    texture: Texture,
+    closed: bool,
+    pub texture_view: TextureView,
+    is_content_expanded_target: bool,
+    max_content_height: f32, //
+}
+
+impl Ui for SettingsMenu {
+    fn create(device: &WGPUDevice, state: &mut State, raw_input: RawInput) -> Self {
+        let ctx = state.egui_ctx();
+        let mut clipped_primitives: Vec<ClippedPrimitive> = Vec::new();
+        let font_output = ctx.run(raw_input.clone(), |ctx| {
+            Self::ui(ctx);
+        });
+
+        let output = ctx.run(raw_input.clone(), |ctx| {
+            Self::ui(ctx);
+        });
+        let (texture, texture_view) = Self::create_image_data(
+            device,
+            Some("Settings font"),
+            TextureDimension::D2,
+            font_output.textures_delta.set[0].1.image.clone(),
+        );
+        clipped_primitives = ctx.tessellate(
+            output.shapes.clone(),
+            ctx.native_pixels_per_point().unwrap(),
+        );
+        Self {
+            volume: Ranged::new(50u8, 0, 100).unwrap(),
+            primitives: clipped_primitives,
+            texture,
+            texture_view,
+            closed: false,
+            pixels_per_point: ctx.pixels_per_point(),
+            is_content_expanded_target: true,
+            max_content_height: 1920
+        }
+    }
+
+    fn update(&mut self, device: &WGPUDevice, state: &mut State, raw_input: RawInput) {
+        let ctx = state.egui_ctx();
+        let output = ctx.run(raw_input.clone(), |ctx| {
+            Self::ui(ctx);
+        });
+        self.primitives = ctx.tessellate(
+            output.shapes.clone(),
+            ctx.native_pixels_per_point().unwrap(),
+        );
+    }
+
+    fn ui(ctx: &Context) -> InnerResponse<Option<()>> {
+        egui::Window::new("TAFAK")
+            .fade_in(true)
+            .fade_out(true)
+            .vscroll(true)
+            .resizable([true, false])
+            .collapsible(true)
+            .movable(true)
+            .show(ctx, |ui| {
+                     let animation_id = Id::new("my_window_content_collapse_animation");
+                let animation_progress = ctx.animate_bool_with_time(
+                    animation_id,
+                    self.is_content_expanded_target, // Driven by the window's state
+                    0.3, // <-- Custom duration!
+                );
+
+                let current_height = animation_progress * self.max_content_height;
+
+                if current_height > 1.0 {
+                    ScrollArea::vertical()
+                        .max_height(current_height) // This is where the animation affects the layout
+                        .show(ui, |ui| {
+                            // Your actual window content goes here
+                            ui.heading("Window Content");
+                            ui.label("This content will smoothly collapse and expand when you click the arrow.");
+                            ui.label("The window itself will still appear and disappear rather quickly, but its *content* will animate.");
+                            ui.label("More content to make it scrollable.");
+                            ui.add_space(50.0);
+                            ui.checkbox(&mut true, "Some setting");
+                            ui.text_edit_singleline(&mut "Hello, Egui!".to_owned());
+                            ui.add_space(50.0);
+                            ui.label("Even more content to fill space.");
+                        });
+                })
+
+                // Request repaint if the animation is still in progress
+                if animation_progress > 0.0 && animation_progress < 1.0 {
+                    ctx.request_repaint();
+                }
+            });
+
+        if let Some(response) = window_response {
+            // `response.is_collapsed()` reflects the state set by egui's built-in collapse button
+            self.is_content_expanded_target = !response.is_collapsed();
+        }
+        }).unwrap()
+    }
+
+    fn meshes(&self) -> Vec<Meshes> {
+        create_mesh_details(&self.primitives, self.pixels_per_point)
+    }
+
+    fn primitives(&self) -> &[ClippedPrimitive] {
+        &self.primitives
+    }
+}

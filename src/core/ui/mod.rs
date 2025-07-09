@@ -1,23 +1,157 @@
+use bytemuck::cast_slice;
 use egui::{
-    epaint::{Primitive, Vertex}, ClippedPrimitive, RawInput, Shape, TextureId
+    epaint::{Primitive, Vertex},
+    ClippedPrimitive, Context, ImageData, InnerResponse, RawInput, TextureId,
 };
 use egui_winit::State;
+use wgpu::{
+    Extent3d, Origin3d, TexelCopyBufferLayout, TexelCopyTextureInfo, Texture, TextureAspect,
+    TextureDescriptor, TextureDimension, TextureFormat, TextureUsages, TextureView,
+    TextureViewDescriptor, TextureViewDimension,
+};
+
+use super::device::WGPUDevice;
 pub mod settings_menu;
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Scissor {
+    pub width: u32,
+    pub height: u32,
+    pub x: u32,
+    pub y: u32,
+}
 
 #[derive(Debug)]
 pub struct Meshes {
     pub vertices: Vec<Vertex>,
     pub indices: Vec<u32>,
     pub texture_id: TextureId,
+    pub scissor: Scissor,
 }
 
 pub trait Ui {
-    fn create(state: &mut State, raw_input: RawInput) -> Self;
-    fn primitives(&self) -> &[ClippedPrimitive];
-    fn meshes(&self) -> Vec<Meshes>;
+    fn new(device: &WGPUDevice, state: &mut State, raw_input: RawInput) -> Self;
+    fn inner_ui(&self, ui: &mut egui::Ui);
+    fn get_texture(&mut self) -> Option<Texture>;
+    fn texture(&mut self, texture: Texture);
+    fn get_texture_view(&mut self) -> Option<TextureView>;
+    fn texture_view(&mut self, texture_view: TextureView);
+    fn update(
+        &mut self,
+        device: &WGPUDevice,
+        state: &mut State,
+        raw_input: RawInput,
+    ) -> Vec<Meshes> {
+        let ctx = state.egui_ctx().clone();
+
+        if self.get_texture().is_none() && self.get_texture_view().is_none() {
+            let image_data = ctx
+                .run(raw_input.clone(), |ctx| {
+                    self.ui(ctx);
+                })
+                .textures_delta
+                .set[0]
+                .1
+                .image
+                .clone();
+            let (texture, texture_view) = Self::create_image_data(
+                device,
+                Some("Settings font"),
+                TextureDimension::D2,
+                image_data,
+            );
+            self.texture(texture);
+            self.texture_view(texture_view);
+        }
+
+        let output = ctx.run(raw_input, |ctx| {
+            self.ui(ctx);
+        });
+        let clipped_primitives = ctx.tessellate(
+            output.shapes.clone(),
+            ctx.native_pixels_per_point().unwrap(),
+        );
+        create_mesh_details(&clipped_primitives, state.egui_ctx().pixels_per_point())
+    }
+    fn ui(&self, ctx: &Context) -> InnerResponse<Option<()>> {
+        egui::Window::new("TAFAK")
+            .fade_in(true)
+            .fade_out(true)
+            .vscroll(true)
+            .resizable([true, false])
+            .collapsible(true)
+            .movable(true)
+            .show(ctx, |ui| self.inner_ui(ui))
+            .unwrap()
+    }
+    fn create_image_data(
+        device: &WGPUDevice,
+        label: Option<&str>,
+        dimension: TextureDimension,
+        image_data: ImageData,
+    ) -> (Texture, TextureView) {
+        let image_width = image_data.width();
+        let image_height = image_data.height();
+        let image_size = Extent3d {
+            width: image_width as u32,
+            height: image_height as u32,
+            depth_or_array_layers: 1,
+        };
+        let colors = match image_data {
+            ImageData::Color(color_image) => color_image.pixels.clone(),
+            ImageData::Font(font_image) => font_image.srgba_pixels(None).collect::<Vec<_>>(),
+        };
+        let format = TextureFormat::Rgba8Unorm;
+        let usage = TextureUsages::TEXTURE_BINDING;
+        let data = cast_slice(&colors) as &[u8];
+        let texture = device.create_texture(&TextureDescriptor {
+            label: label,
+            size: image_size,
+            dimension,
+            format,
+            usage: usage | TextureUsages::COPY_DST,
+            view_formats: &[format],
+            mip_level_count: 1,
+            sample_count: 1,
+        });
+        device.queue.write_texture(
+            TexelCopyTextureInfo {
+                texture: &texture,
+                aspect: TextureAspect::All,
+                origin: Origin3d::default(),
+                mip_level: 0,
+            },
+            data,
+            TexelCopyBufferLayout {
+                offset: 0,
+                bytes_per_row: Some(
+                    ((image_width as u32 * 4) + wgpu::COPY_BYTES_PER_ROW_ALIGNMENT - 1)
+                        / wgpu::COPY_BYTES_PER_ROW_ALIGNMENT
+                        * wgpu::COPY_BYTES_PER_ROW_ALIGNMENT,
+                ),
+                rows_per_image: Some(image_height as u32),
+            },
+            image_size,
+        );
+        let texture_view = texture.create_view(&TextureViewDescriptor {
+            label,
+            format: Some(format),
+            dimension: Some(TextureViewDimension::D2),
+            aspect: TextureAspect::All,
+            base_mip_level: 0,
+            mip_level_count: Some(1),
+            base_array_layer: 0,
+            array_layer_count: Some(1),
+            ..Default::default()
+        });
+        (texture, texture_view)
+    }
 }
 
-fn create_mesh_details(clipped_primitives: &[ClippedPrimitive]) -> Vec<Meshes> {
+fn create_mesh_details(
+    clipped_primitives: &[ClippedPrimitive],
+    pixels_per_point: f32,
+) -> Vec<Meshes> {
     let mut result: Vec<Meshes> = vec![];
     for ClippedPrimitive {
         primitive,
@@ -29,10 +163,29 @@ fn create_mesh_details(clipped_primitives: &[ClippedPrimitive]) -> Vec<Meshes> {
                 let vertices = mesh.vertices.clone();
                 let indices = mesh.indices.clone();
                 let texture_id = mesh.texture_id;
+                let clip_min_x = (clip_rect.min.x * pixels_per_point).round() as i32;
+                let clip_min_y = (clip_rect.min.y * pixels_per_point).round() as i32;
+                let clip_max_x = (clip_rect.max.x * pixels_per_point).round() as i32;
+                let clip_max_y = (clip_rect.max.y * pixels_per_point).round() as i32;
+
+                // Calculate the physical extent
+                let scissor_width = (clip_max_x - clip_min_x).max(0) as u32;
+                let scissor_height = (clip_max_y - clip_min_y).max(0) as u32;
+
+                // Calculate the physical offset
+                let scissor_x = clip_min_x.max(0) as u32;
+                let scissor_y = clip_min_y.max(0) as u32;
+                let scissor = Scissor {
+                    width: scissor_width,
+                    height: scissor_height,
+                    x: scissor_x,
+                    y: scissor_y,
+                };
                 let mesh_details = Meshes {
                     vertices,
                     indices,
                     texture_id,
+                    scissor,
                 };
                 result.push(mesh_details);
             }
@@ -44,11 +197,16 @@ fn create_mesh_details(clipped_primitives: &[ClippedPrimitive]) -> Vec<Meshes> {
 
 #[cfg(test)]
 mod tests {
+
+    use crate::core::{device::WGPUDevice, instance::WGPUInstance};
+
     use super::{settings_menu::SettingsMenu, Ui};
     use egui::{Context, RawInput, ViewportId};
     use egui_winit::State;
     use mockall::mock;
-    use wgpu::rwh::{DisplayHandle, HasDisplayHandle};
+    use wgpu::{
+        rwh::{DisplayHandle, HasDisplayHandle},
+    };
     use winit::window::Theme;
 
     mock!(
@@ -60,9 +218,10 @@ mod tests {
         }
     }
 
-    fn init() -> impl Ui {
+    fn init() -> (impl Ui, WGPUDevice, State, RawInput) {
         let ctx = Context::default();
-
+        let instance = WGPUInstance::init_instance().unwrap();
+        let device = WGPUDevice::create_device(&instance).unwrap();
         let display = MockHasDisplayHandle::new();
         let mut state = State::new(
             ctx,
@@ -73,20 +232,25 @@ mod tests {
             Some(0),
         );
         let raw_input = RawInput::default();
-        SettingsMenu::create(&mut state, raw_input)
+        (
+            SettingsMenu::new(&device, &mut state, raw_input.clone()),
+            device,
+            state,
+            raw_input,
+        )
     }
 
     #[test]
     fn create_ui_test() {
-        let ui = init();
-        assert!(!ui.primitives().is_empty());
+        let (mut ui, device, mut state, raw_input) = init();
+        let meshes = ui.update(&device, &mut state, raw_input);
+        assert!(!meshes.is_empty());
     }
 
     #[test]
     fn create_mesh_details_test() {
-        let ui = init();
-        let meshes = ui.meshes();
-        assert!(!meshes[0].indices.is_empty());
+        let (mut ui, device, mut state, raw_input) = init();
+        let meshes = ui.update(&device, &mut state, raw_input);
         assert!(!meshes[0].vertices.is_empty());
     }
 }

@@ -1,6 +1,7 @@
-use std::sync::Arc;
+use std::{sync::Arc, thread::sleep, time};
 
-use muda::dpi::LogicalSize;
+use egui_extras::Size;
+use muda::dpi::{LogicalSize, PhysicalSize};
 use winit::{
     application::ApplicationHandler,
     window::{Window, WindowAttributes},
@@ -14,11 +15,24 @@ pub struct App {
     window: Option<Arc<Window>>
 }
 
+const POLL_SLEEP_TIME: std::time::Duration = time::Duration::from_millis(1);
+
 #[allow(warnings)]
 impl ApplicationHandler for App {
+    fn about_to_wait(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
+        self.window.as_ref().unwrap().request_redraw();
+        match event_loop.control_flow() {
+            winit::event_loop::ControlFlow::Poll => {
+                sleep(POLL_SLEEP_TIME);
+            }
+            _ => todo!(),
+        }
+    }
+
+
     fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
         let window_attributes =
-            WindowAttributes::default().with_inner_size(LogicalSize::new(3840, 2160));
+            WindowAttributes::default().with_inner_size(PhysicalSize::new(3840, 1920));
         let window = Arc::new(event_loop.create_window(window_attributes).ok().unwrap());
         self.window =  Some(window.clone());
         self.renderer = Some(Renderer::new(window.clone()).unwrap());

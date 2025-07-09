@@ -31,7 +31,6 @@ impl WGPUDevice {
                 let device_descriptor = DeviceDescriptor {
                     required_features: Features::default()
                         | Features::PUSH_CONSTANTS
-                        | Features::SPIRV_SHADER_PASSTHROUGH
                         | Features::TEXTURE_BINDING_ARRAY,
                     required_limits: Limits {
                         max_binding_array_elements_per_shader_stage: 1,
