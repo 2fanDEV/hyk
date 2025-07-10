@@ -21,3 +21,4 @@ wgpu = { version="25.0.2", features=["spirv", "glsl", "vulkan", "vulkan-portabil
 winit = "0.30.11"
 mockall = "0.13.1"
 bytemuck = "1.23.1"
+gltf = "1.4.1"

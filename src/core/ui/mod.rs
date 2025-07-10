@@ -59,7 +59,7 @@ trait UiSealed {
                 }
                 
                 if animation_progress > 0.0 && animation_progress < 1.0 {
-                    ctx.request_repaint();
+                    ctx.request_repaint()
                 }
             })
             .unwrap()
