@@ -1,11 +1,13 @@
+use std::cmp::max;
+
 use egui::RawInput;
 use egui_winit::State;
 use log::debug;
-use wgpu::{Extent3d, Texture, TextureDimension, TextureView};
+use wgpu::{Texture, TextureView};
 
 use crate::core::{device::WGPUDevice, utils::ranged::Ranged};
 
-use super::{create_mesh_details, Meshes, Ui};
+use super::{Ui, UiSealed};
 
 pub struct SettingsMenu {
     pub volume: Ranged<u8>,
@@ -16,6 +18,7 @@ pub struct SettingsMenu {
     is_content_expanded_target: bool,
     max_content_height: f32, //
 }
+
 
 impl Ui for SettingsMenu {
     fn new(device: &WGPUDevice, state: &mut State, raw_input: RawInput) -> Self {
@@ -30,6 +33,50 @@ impl Ui for SettingsMenu {
         }
     }
 
+}
+
+
+impl UiSealed for SettingsMenu {
+    fn get_texture(&self) -> Option<Texture> {
+        self.texture.clone()
+    }
+
+    fn texture(&mut self, texture: Texture) {
+        self.texture = Some(texture);
+    }
+
+    fn get_texture_view(&self) -> Option<TextureView> {
+        self.texture_view.clone()
+    }
+
+    fn texture_view(&mut self, texture_view: TextureView) {
+        self.texture_view = Some(texture_view);
+    }
+
+    fn get_closed(&self) -> bool {
+        self.closed
+    }
+
+    fn closed(&mut self, closed: bool) {
+        self.closed = closed;
+    }
+
+    fn is_content_expanded_target(&self) -> bool {
+        self.is_content_expanded_target
+    }
+
+    fn set_content_expanded_target(&mut self, expanded: bool) {
+        self.is_content_expanded_target = expanded;
+    }
+
+    fn max_content_height(&mut self, max_content_height: f32) {
+        self.max_content_height = max_content_height;
+    }
+
+    fn get_max_content_height(&self) -> f32 {
+        self.max_content_height
+    }
+
     fn inner_ui(&self, ui: &mut egui::Ui) {
         ui.label("Hello world!");
         if ui.button("Click me").clicked() {
@@ -41,21 +88,5 @@ impl Ui for SettingsMenu {
         if ui.button("WHAT THE HEEEEEEELLL").clicked() {
             debug!("WHAT THE HEEEEELL");
         }
-    }
-
-    fn get_texture(&mut self) -> Option<Texture> {
-        self.texture.clone()
-    }
-
-    fn texture(&mut self, texture: Texture) {
-        self.texture = Some(texture);
-    }
-
-    fn get_texture_view(&mut self) -> Option<TextureView> {
-        self.texture_view.clone()
-    }
-
-    fn texture_view(&mut self, texture_view: TextureView) {
-        self.texture_view = Some(texture_view);
     }
 }

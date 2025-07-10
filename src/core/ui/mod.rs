@@ -1,7 +1,6 @@
 use bytemuck::cast_slice;
 use egui::{
-    epaint::{Primitive, Vertex},
-    ClippedPrimitive, Context, ImageData, InnerResponse, RawInput, TextureId,
+    epaint::{Primitive, Vertex}, ClippedPrimitive, Context, Id, ImageData, InnerResponse, RawInput, ScrollArea, TextureId
 };
 use egui_winit::State;
 use wgpu::{
@@ -29,13 +28,47 @@ pub struct Meshes {
     pub scissor: Scissor,
 }
 
-pub trait Ui {
-    fn new(device: &WGPUDevice, state: &mut State, raw_input: RawInput) -> Self;
-    fn inner_ui(&self, ui: &mut egui::Ui);
-    fn get_texture(&mut self) -> Option<Texture>;
+trait UiSealed {
+    fn get_texture(&self) -> Option<Texture>;
     fn texture(&mut self, texture: Texture);
-    fn get_texture_view(&mut self) -> Option<TextureView>;
+    fn get_texture_view(&self) -> Option<TextureView>;
     fn texture_view(&mut self, texture_view: TextureView);
+    fn get_closed(&self) -> bool;
+    fn closed(&mut self, closed: bool);
+    fn is_content_expanded_target(&self) -> bool;
+    fn set_content_expanded_target(&mut self, expanded: bool);
+    fn max_content_height(&mut self, max_content_height: f32);
+    fn get_max_content_height(&self) -> f32;
+    fn inner_ui(&self, ui: &mut egui::Ui);
+    fn ui(&self, ctx: &Context) -> InnerResponse<Option<()>> {
+        egui::Window::new("TAFAK")
+            .fade_in(true)
+            .fade_out(true)
+            .vscroll(true)
+            .resizable([true, false])
+            .collapsible(true)
+            .movable(true)
+            .show(ctx, |ui| {
+                let animation_id = Id::new("Window Collapse animation");
+                let animation_progress = ctx.animate_bool_with_time(animation_id, self.is_content_expanded_target(), 0.3);
+                let current_height = animation_progress * self.get_max_content_height();
+                if current_height > 1.0 { 
+                    ScrollArea::vertical()
+                        .max_height(current_height)
+                        .show(ui, |ui| self.inner_ui(ui));
+                }
+                
+                if animation_progress > 0.0 && animation_progress < 1.0 {
+                    ctx.request_repaint();
+                }
+            })
+            .unwrap()
+    }
+}
+
+#[allow(private_bounds)]
+pub trait Ui: UiSealed {
+    fn new(device: &WGPUDevice, state: &mut State, raw_input: RawInput) -> Self;
     fn update(
         &mut self,
         device: &WGPUDevice,
@@ -43,7 +76,6 @@ pub trait Ui {
         raw_input: RawInput,
     ) -> Vec<Meshes> {
         let ctx = state.egui_ctx().clone();
-
         if self.get_texture().is_none() && self.get_texture_view().is_none() {
             let image_data = ctx
                 .run(raw_input.clone(), |ctx| {
@@ -73,17 +105,7 @@ pub trait Ui {
         );
         create_mesh_details(&clipped_primitives, state.egui_ctx().pixels_per_point())
     }
-    fn ui(&self, ctx: &Context) -> InnerResponse<Option<()>> {
-        egui::Window::new("TAFAK")
-            .fade_in(true)
-            .fade_out(true)
-            .vscroll(true)
-            .resizable([true, false])
-            .collapsible(true)
-            .movable(true)
-            .show(ctx, |ui| self.inner_ui(ui))
-            .unwrap()
-    }
+
     fn create_image_data(
         device: &WGPUDevice,
         label: Option<&str>,
@@ -204,9 +226,7 @@ mod tests {
     use egui::{Context, RawInput, ViewportId};
     use egui_winit::State;
     use mockall::mock;
-    use wgpu::{
-        rwh::{DisplayHandle, HasDisplayHandle},
-    };
+    use wgpu::rwh::{DisplayHandle, HasDisplayHandle};
     use winit::window::Theme;
 
     mock!(
