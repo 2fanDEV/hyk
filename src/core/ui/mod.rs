@@ -1,8 +1,9 @@
 use bytemuck::cast_slice;
 use egui::{
-    epaint::{Primitive, Vertex}, ClippedPrimitive, Context, Id, ImageData, InnerResponse, RawInput, ScrollArea, TextureId
+    epaint::{Primitive, Vertex}, ClippedPrimitive, Context, Id, ImageData, InnerResponse, RawInput, Response, ScrollArea, TextureId
 };
 use egui_winit::State;
+use log::debug;
 use wgpu::{
     Extent3d, Origin3d, TexelCopyBufferLayout, TexelCopyTextureInfo, Texture, TextureAspect,
     TextureDescriptor, TextureDimension, TextureFormat, TextureUsages, TextureView,
@@ -21,8 +22,8 @@ pub struct Scissor {
 }
 
 #[derive(Debug)]
-pub struct Meshes {
-    pub vertices: Vec<Vertex>,
+pub struct Meshes<T> {
+    pub vertices: Vec<T>,
     pub indices: Vec<u32>,
     pub texture_id: TextureId,
     pub scissor: Scissor,
@@ -33,26 +34,30 @@ trait UiSealed {
     fn texture(&mut self, texture: Texture);
     fn get_texture_view(&self) -> Option<TextureView>;
     fn texture_view(&mut self, texture_view: TextureView);
-    fn get_closed(&self) -> bool;
-    fn closed(&mut self, closed: bool);
+    fn get_open(&self) -> bool;
+    fn open(&mut self, closed: bool);
     fn is_content_expanded_target(&self) -> bool;
     fn set_content_expanded_target(&mut self, expanded: bool);
     fn max_content_height(&mut self, max_content_height: f32);
     fn get_max_content_height(&self) -> f32;
     fn inner_ui(&self, ui: &mut egui::Ui);
     fn ui(&self, ctx: &Context) -> InnerResponse<Option<()>> {
-        egui::Window::new("TAFAK")
+        let inner_response = egui::Window::new("TAFAK")
             .fade_in(true)
             .fade_out(true)
             .vscroll(true)
             .resizable([true, false])
+            .open(&mut self.get_open())
+            .title_bar(true)
             .collapsible(true)
             .movable(true)
             .show(ctx, |ui| {
                 let animation_id = Id::new("Window Collapse animation");
-                let animation_progress = ctx.animate_bool_with_time(animation_id, self.is_content_expanded_target(), 0.3);
+                let animation_progress = ctx.animate_bool_with_time(animation_id, self.is_content_expanded_target(), 0.0);
+                debug!("animation {animation_progress:?}");
                 let current_height = animation_progress * self.get_max_content_height();
-                if current_height > 1.0 { 
+                debug!("open? {:?}", self.get_open());
+                if current_height >= 1.0 {
                     ScrollArea::vertical()
                         .max_height(current_height)
                         .show(ui, |ui| self.inner_ui(ui));
@@ -62,7 +67,9 @@ trait UiSealed {
                     ctx.request_repaint()
                 }
             })
-            .unwrap()
+            .unwrap();
+        debug!("{:?}", self.get_open());
+        inner_response
     }
 }
 

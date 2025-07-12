@@ -34,6 +34,7 @@ mod sampler;
 mod shader_store;
 mod ui;
 mod utils;
+mod model_pipeline;
 
 pub struct FrameData {}
 pub struct Core {

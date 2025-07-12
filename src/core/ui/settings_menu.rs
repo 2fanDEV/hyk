@@ -14,7 +14,7 @@ pub struct SettingsMenu {
     pixels_per_point: f32,
     texture: Option<Texture>,
     pub texture_view: Option<TextureView>,
-    closed: bool,
+    open: bool,
     is_content_expanded_target: bool,
     max_content_height: f32, //
 }
@@ -26,15 +26,14 @@ impl Ui for SettingsMenu {
             volume: Ranged::new(50u8, 0, 100).unwrap(),
             texture: None,
             texture_view: None,
-            closed: false,
+            open: true,
             pixels_per_point: state.egui_ctx().pixels_per_point(),
             is_content_expanded_target: true,
-            max_content_height: 0.0,
+            max_content_height: 1.0,
         }
     }
 
 }
-
 
 impl UiSealed for SettingsMenu {
     fn get_texture(&self) -> Option<Texture> {
@@ -53,12 +52,12 @@ impl UiSealed for SettingsMenu {
         self.texture_view = Some(texture_view);
     }
 
-    fn get_closed(&self) -> bool {
-        self.closed
+    fn get_open(&self) -> bool {
+        self.open
     }
 
-    fn closed(&mut self, closed: bool) {
-        self.closed = closed;
+    fn open(&mut self, closed: bool) {
+        self.open = closed;
     }
 
     fn is_content_expanded_target(&self) -> bool {

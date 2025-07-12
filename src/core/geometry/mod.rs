@@ -5,6 +5,8 @@ use wgpu::{
     BindGroupLayout, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingType, Device, PushConstantRange, SamplerBindingType, ShaderStages, VertexAttribute, VertexBufferLayout, VertexFormat, VertexState, VertexStepMode
 };
 
+pub mod vertex3d;
+
 pub trait VertexStateInformation {
     fn vertex_state() -> Vec<VertexBufferLayout<'static>>;
 }
