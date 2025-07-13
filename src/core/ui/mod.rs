@@ -1,6 +1,8 @@
 use bytemuck::cast_slice;
 use egui::{
-    epaint::{Primitive, Vertex}, ClippedPrimitive, Context, Id, ImageData, InnerResponse, RawInput, Response, ScrollArea, TextureId
+    epaint::{Primitive, Vertex},
+    ClippedPrimitive, Context, Id, ImageData, InnerResponse, RawInput, Response, ScrollArea,
+    TextureId,
 };
 use egui_winit::State;
 use log::debug;
@@ -53,7 +55,11 @@ trait UiSealed {
             .movable(true)
             .show(ctx, |ui| {
                 let animation_id = Id::new("Window Collapse animation");
-                let animation_progress = ctx.animate_bool_with_time(animation_id, self.is_content_expanded_target(), 0.0);
+                let animation_progress = ctx.animate_bool_with_time(
+                    animation_id,
+                    self.is_content_expanded_target(),
+                    0.0,
+                );
                 debug!("animation {animation_progress:?}");
                 let current_height = animation_progress * self.get_max_content_height();
                 debug!("open? {:?}", self.get_open());
@@ -62,7 +68,7 @@ trait UiSealed {
                         .max_height(current_height)
                         .show(ui, |ui| self.inner_ui(ui));
                 }
-                
+
                 if animation_progress > 0.0 && animation_progress < 1.0 {
                     ctx.request_repaint()
                 }
@@ -76,12 +82,12 @@ trait UiSealed {
 #[allow(private_bounds)]
 pub trait Ui: UiSealed {
     fn new(device: &WGPUDevice, state: &mut State, raw_input: RawInput) -> Self;
-    fn update(
+    fn update<T>(
         &mut self,
         device: &WGPUDevice,
         state: &mut State,
         raw_input: RawInput,
-    ) -> Vec<Meshes> {
+    ) -> Vec<Meshes<T>> {
         let ctx = state.egui_ctx().clone();
         if self.get_texture().is_none() && self.get_texture_view().is_none() {
             let image_data = ctx
@@ -177,11 +183,11 @@ pub trait Ui: UiSealed {
     }
 }
 
-fn create_mesh_details(
+fn create_mesh_details<T>(
     clipped_primitives: &[ClippedPrimitive],
     pixels_per_point: f32,
-) -> Vec<Meshes> {
-    let mut result: Vec<Meshes> = vec![];
+) -> Vec<Meshes<T>> {
+    let mut result: Vec<Meshes<T>> = vec![];
     for ClippedPrimitive {
         primitive,
         clip_rect,
@@ -230,7 +236,7 @@ mod tests {
     use crate::core::{device::WGPUDevice, instance::WGPUInstance};
 
     use super::{settings_menu::SettingsMenu, Ui};
-    use egui::{Context, RawInput, ViewportId};
+    use egui::{epaint::Vertex, Context, RawInput, ViewportId};
     use egui_winit::State;
     use mockall::mock;
     use wgpu::rwh::{DisplayHandle, HasDisplayHandle};
@@ -270,14 +276,14 @@ mod tests {
     #[test]
     fn create_ui_test() {
         let (mut ui, device, mut state, raw_input) = init();
-        let meshes = ui.update(&device, &mut state, raw_input);
+        let meshes = ui.update::<Vertex>(&device, &mut state, raw_input);
         assert!(!meshes.is_empty());
     }
 
     #[test]
     fn create_mesh_details_test() {
         let (mut ui, device, mut state, raw_input) = init();
-        let meshes = ui.update(&device, &mut state, raw_input);
+        let meshes = ui.update::<Vertex>(&device, &mut state, raw_input);
         assert!(!meshes[0].vertices.is_empty());
     }
 }
