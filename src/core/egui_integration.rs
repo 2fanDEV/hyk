@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use egui::{Context, ViewportId};
+use egui::{epaint::Vertex, Context, ViewportId};
 use egui_winit::{EventResponse, State};
 use winit::{
     event::WindowEvent,
@@ -47,6 +47,6 @@ impl EguiIntegration {
 
     pub fn update_ui(&mut self, settings: &mut SettingsMenu, device: Arc<WGPUDevice>)  {
         let raw_input = self.state.take_egui_input(&self.window);
-        settings.update(&device, &mut self.state, raw_input);
+        settings.update::<Vertex>(&device, &mut self.state, raw_input);
     }
 }

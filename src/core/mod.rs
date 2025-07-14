@@ -16,11 +16,11 @@ use utils::{
     push_constants::{EguiPushConstant, PushConstantType},
 };
 use wgpu::{
-    BindGroupDescriptor, BindGroupEntry, BindingResource, BlendState, BufferDescriptor,
-    BufferUsages, Color, ColorWrites, CommandEncoderDescriptor, Device, FrontFace,
-    IndexFormat, MultisampleState, PipelineLayoutDescriptor, PresentMode, PrimitiveTopology,
-    RenderPassColorAttachment, RenderPassDescriptor, RenderPipeline, StoreOp, Surface,
-    SurfaceConfiguration, TextureViewDescriptor,
+    wgt::CommandEncoderDescriptor, BindGroupDescriptor, BindGroupEntry, BindingResource,
+    BlendState, BufferDescriptor, BufferUsages, Color, ColorWrites, CommandEncoderDescriptor,
+    Device, FrontFace, IndexFormat, MultisampleState, PipelineLayoutDescriptor, PresentMode,
+    PrimitiveTopology, RenderPassColorAttachment, RenderPassDescriptor, RenderPipeline, StoreOp,
+    Surface, SurfaceConfiguration, TextureViewDescriptor,
 };
 use winit::window::Window;
 
@@ -30,11 +30,12 @@ mod egui_integration;
 mod enums;
 pub mod geometry;
 mod instance;
+mod model_pipeline;
 mod sampler;
 mod shader_store;
 mod ui;
 mod utils;
-mod model_pipeline;
+mod render_passes;
 
 pub struct FrameData {}
 pub struct Core {
@@ -65,7 +66,7 @@ impl Core {
         };*/
         let mut settings = integration.ui(device.clone(), window.clone());
         let raw_input = integration.state.take_egui_input(&window);
-        let meshes = settings.update(&device, &mut integration.state, raw_input);
+        let meshes = settings.update::<Vertex>(&device, &mut integration.state, raw_input);
         let surface = instance.create_surface(window.clone())?;
         let egui_buffers = meshes
             .into_iter()
@@ -90,7 +91,7 @@ impl Core {
                 )
             })
             .collect::<Vec<_>>();
- //       let surface_capabilities = surface.get_capabilities(&instance.adapter);
+        //       let surface_capabilities = surface.get_capabilities(&instance.adapter);
         let mut surface_config = surface
             .get_default_config(&instance.adapter, window_size.width, window_size.height)
             .unwrap();
@@ -142,7 +143,7 @@ impl Core {
             window_scale,
             egui_buffers,
             settings,
-            window: window.clone()
+            window: window.clone(),
         })
     }
 
@@ -153,6 +154,20 @@ impl Core {
             config.height = height;
             self.surface.configure(&self.device, config);
         }
+    }
+
+
+    pub fn render_pass(&mut self, label: Option<&str>) -> Result<()> {
+        let mut encoder = self
+            .device
+            .create_command_encoder(&CommandEncoderDescriptor { label });
+        let surface_texture = self.surface.get_current_texture()?;
+        let texture_view = surface_texture.texture.create_view(&TextureViewDescriptor::default());
+        
+        
+
+
+        Ok(())
     }
 
     pub fn egui_pass(&mut self, label: &str) -> Result<()> {
@@ -214,7 +229,8 @@ impl Core {
 
             let width = self.surface_config.width as f32;
             let height = self.surface_config.height as f32;
-            let push_constants = utils::push_constants::EguiPushConstant::new(width, height, self.window_scale);
+            let push_constants =
+                utils::push_constants::EguiPushConstant::new(width, height, self.window_scale);
             render_pass.set_push_constants(wgpu::ShaderStages::VERTEX, 0, &push_constants.as_raw());
             render_pass.set_viewport(0.0, 0.0, width, height, 0.0, 1.0);
 
@@ -244,7 +260,9 @@ impl Core {
         self.integration
             .update_ui(&mut self.settings, self.device.clone());
         let raw_input = self.integration.state.take_egui_input(&self.window);
-        let meshes = self.settings.update(&self.device, &mut self.integration.state, raw_input);
+        let meshes =
+            self.settings
+                .update::<Vertex>(&self.device, &mut self.integration.state, raw_input);
         self.egui_buffers = meshes
             .into_iter()
             .map(|mesh| {

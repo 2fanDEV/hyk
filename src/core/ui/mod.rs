@@ -82,12 +82,12 @@ trait UiSealed {
 #[allow(private_bounds)]
 pub trait Ui: UiSealed {
     fn new(device: &WGPUDevice, state: &mut State, raw_input: RawInput) -> Self;
-    fn update<T>(
+    fn update<Vertex>(
         &mut self,
         device: &WGPUDevice,
         state: &mut State,
         raw_input: RawInput,
-    ) -> Vec<Meshes<T>> {
+    ) -> Vec<Meshes<egui::epaint::Vertex>> {
         let ctx = state.egui_ctx().clone();
         if self.get_texture().is_none() && self.get_texture_view().is_none() {
             let image_data = ctx
@@ -183,11 +183,11 @@ pub trait Ui: UiSealed {
     }
 }
 
-fn create_mesh_details<T>(
+fn create_mesh_details(
     clipped_primitives: &[ClippedPrimitive],
     pixels_per_point: f32,
-) -> Vec<Meshes<T>> {
-    let mut result: Vec<Meshes<T>> = vec![];
+) -> Vec<Meshes<egui::epaint::Vertex>> {
+    let mut result: Vec<Meshes<Vertex>> = vec![];
     for ClippedPrimitive {
         primitive,
         clip_rect,
