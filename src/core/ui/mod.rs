@@ -24,7 +24,7 @@ pub struct Scissor {
 }
 
 #[derive(Debug)]
-pub struct Meshes<T> {
+pub struct Mesh<T> {
     pub vertices: Vec<T>,
     pub indices: Vec<u32>,
     pub texture_id: TextureId,
@@ -60,9 +60,7 @@ trait UiSealed {
                     self.is_content_expanded_target(),
                     0.0,
                 );
-                debug!("animation {animation_progress:?}");
                 let current_height = animation_progress * self.get_max_content_height();
-                debug!("open? {:?}", self.get_open());
                 if current_height >= 1.0 {
                     ScrollArea::vertical()
                         .max_height(current_height)
@@ -74,7 +72,6 @@ trait UiSealed {
                 }
             })
             .unwrap();
-        debug!("{:?}", self.get_open());
         inner_response
     }
 }
@@ -87,7 +84,7 @@ pub trait Ui: UiSealed {
         device: &WGPUDevice,
         state: &mut State,
         raw_input: RawInput,
-    ) -> Vec<Meshes<egui::epaint::Vertex>> {
+    ) -> Vec<Mesh<egui::epaint::Vertex>> {
         let ctx = state.egui_ctx().clone();
         if self.get_texture().is_none() && self.get_texture_view().is_none() {
             let image_data = ctx
@@ -186,8 +183,8 @@ pub trait Ui: UiSealed {
 fn create_mesh_details(
     clipped_primitives: &[ClippedPrimitive],
     pixels_per_point: f32,
-) -> Vec<Meshes<egui::epaint::Vertex>> {
-    let mut result: Vec<Meshes<Vertex>> = vec![];
+) -> Vec<Mesh<egui::epaint::Vertex>> {
+    let mut result: Vec<Mesh<Vertex>> = vec![];
     for ClippedPrimitive {
         primitive,
         clip_rect,
@@ -216,7 +213,7 @@ fn create_mesh_details(
                     x: scissor_x,
                     y: scissor_y,
                 };
-                let mesh_details = Meshes {
+                let mesh_details = Mesh {
                     vertices,
                     indices,
                     texture_id,

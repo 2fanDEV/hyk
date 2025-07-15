@@ -17,8 +17,7 @@ use utils::{
 };
 use wgpu::{
     wgt::CommandEncoderDescriptor, BindGroupDescriptor, BindGroupEntry, BindingResource,
-    BlendState, BufferDescriptor, BufferUsages, Color, ColorWrites, CommandEncoderDescriptor,
-    Device, FrontFace, IndexFormat, MultisampleState, PipelineLayoutDescriptor, PresentMode,
+    BlendState, BufferDescriptor, BufferUsages, Color, ColorWrites, Device, FrontFace, IndexFormat, MultisampleState, PipelineLayoutDescriptor, PresentMode,
     PrimitiveTopology, RenderPassColorAttachment, RenderPassDescriptor, RenderPipeline, StoreOp,
     Surface, SurfaceConfiguration, TextureViewDescriptor,
 };
