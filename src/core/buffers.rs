@@ -1,10 +1,9 @@
-use std::ops::Deref;
+use std::ops::{Deref, RangeBounds};
 
 use anyhow::Result;
 use bytemuck::{bytes_of, cast_slice, NoUninit};
 use wgpu::{
-    util::{BufferInitDescriptor, DeviceExt},
-    Buffer, BufferDescriptor, BufferUsages, Device,
+    util::{BufferInitDescriptor, DeviceExt}, Buffer, BufferAddress, BufferAsyncError, BufferDescriptor, BufferUsages, Device, MapMode
 };
 
 use super::ui::Scissor;
@@ -55,7 +54,7 @@ impl<T> ElementBuffer<T> {
         elements: ElementType<T>,
     ) -> Result<ElementBuffer<T>>
     where
-        T: NoUninit,
+        T: NoUninit
     {
         let elems: &[u8] = match &elements {
             ElementType::VECTOR(items) => cast_slice(items),
@@ -75,4 +74,12 @@ impl<T> ElementBuffer<T> {
             scissor,
         })
     }
+
+    pub fn update_buffer<B: RangeBounds<BufferAddress>>(&mut self, device: &Device, bounds: B, data: impl FnOnce() -> Vec<u8>)-> Result<()> {
+        let callback = move |result: Result<(), BufferAsyncError>| {
+                let get_mapped_range_mut = self.slice(..).get_mapped_range_mut().copy_from_slice(&data());    
+        };
+        self.buffer.map_async(MapMode::Write, .., callback);
+        Ok(())
+    } 
 }
