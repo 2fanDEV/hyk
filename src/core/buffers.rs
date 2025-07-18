@@ -1,9 +1,12 @@
 use std::ops::{Deref, RangeBounds};
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use bytemuck::{bytes_of, cast_slice, NoUninit};
+use tokio::sync::oneshot;
 use wgpu::{
-    util::{BufferInitDescriptor, DeviceExt}, Buffer, BufferAddress, BufferAsyncError, BufferDescriptor, BufferUsages, Device, MapMode
+    util::{BufferInitDescriptor, DeviceExt},
+    Buffer, BufferAddress, BufferAsyncError, BufferDescriptor, BufferUsages, Device, MapMode,
+    WasmNotSend,
 };
 
 use super::ui::Scissor;
@@ -11,11 +14,13 @@ use super::ui::Scissor;
 pub trait BufferElements {}
 
 #[allow(non_camel_case_types)]
+#[derive(Debug)]
 pub enum ElementType<T> {
     VECTOR(Vec<T>),
     SINGLE_ELEMENT(T),
 }
 
+#[derive(Debug)]
 pub struct MeshBuffer<T> {
     pub vertex_buffer: ElementBuffer<T>,
     pub index_buffer: ElementBuffer<u32>,
@@ -30,6 +35,7 @@ impl<T> MeshBuffer<T> {
     }
 }
 
+#[derive(Debug)]
 pub struct ElementBuffer<T> {
     buffer: Buffer,
     pub size: u32,
@@ -54,7 +60,7 @@ impl<T> ElementBuffer<T> {
         elements: ElementType<T>,
     ) -> Result<ElementBuffer<T>>
     where
-        T: NoUninit
+        T: NoUninit,
     {
         let elems: &[u8] = match &elements {
             ElementType::VECTOR(items) => cast_slice(items),
@@ -75,11 +81,23 @@ impl<T> ElementBuffer<T> {
         })
     }
 
-    pub fn update_buffer<B: RangeBounds<BufferAddress>>(&mut self, device: &Device, bounds: B, data: impl FnOnce() -> Vec<u8>)-> Result<()> {
-        let callback = move |result: Result<(), BufferAsyncError>| {
-                let get_mapped_range_mut = self.slice(..).get_mapped_range_mut().copy_from_slice(&data());    
+    pub async fn update_buffer(&mut self, device: &Device, data: impl FnOnce() -> Vec<u8>) -> Result<()> {
+        let buffer_for_callback = self.buffer.clone();
+        let called_data = data();
+
+        let (tx, rx) = oneshot::channel::<Result<()>>();
+
+        let callback = move |result: Result<(), BufferAsyncError>| match result {
+            Ok(()) => {
+                let mut mapped_range = buffer_for_callback.get_mapped_range_mut(..);
+                mapped_range.copy_from_slice(&called_data);
+                buffer_for_callback.unmap();
+                let _ = tx.send(Ok(()));
+            }
+            Err(_) => todo!(),
         };
         self.buffer.map_async(MapMode::Write, .., callback);
+        let _ = rx.await.map_err(|e| anyhow!("Failed to receive result from WGPU callback: {:?}", e));
         Ok(())
-    } 
+    }
 }

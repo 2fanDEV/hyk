@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{ops::Deref, sync::Arc};
 
 use anyhow::Result;
 use wgpu::{
@@ -17,8 +17,17 @@ use crate::core::{
     },
 };
 
+#[derive(Debug)]
 pub struct ModelRenderPipeline {
     pipeline: RenderPipeline,
+}
+
+impl Deref for ModelRenderPipeline {
+    type Target = RenderPipeline;
+
+    fn deref(&self) -> &Self::Target {
+        &self.pipeline
+    }
 }
 
 impl ModelRenderPipeline {
@@ -48,8 +57,7 @@ impl ModelRenderPipeline {
             fragment_shader,
             PrimitiveTopology::TriangleList,
             FrontFace::Cw,
-            None,
-            wgpu::PolygonMode::Fill,
+            None, wgpu::PolygonMode::Fill,
             None,
             MultisampleState {
                 count: 1,
@@ -66,10 +74,5 @@ impl ModelRenderPipeline {
         Self {
             pipeline: render_pipeline,
         }
-    }
-
-    pub fn render(self, device: Arc<WGPUDevice>) -> Result<()> {
-        
-        Ok(())
     }
 }

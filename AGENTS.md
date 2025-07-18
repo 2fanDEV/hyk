@@ -52,7 +52,7 @@ cargo fmt
 ### Additional Notes
 - Ensure compatibility with dependencies listed in `Cargo.toml`.
 - Follow guidelines in `.github/workflows/rust.yml` for CI/CD.
-
+- Before you change or fix something, always ask for consent if the operator agrees with it
 ---
 
 This file is designed to assist coding agents in maintaining consistency and quality across the repository.

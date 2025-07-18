@@ -29,7 +29,7 @@ mod egui_integration;
 mod enums;
 pub mod geometry;
 mod instance;
-mod model_pipeline;
+mod scene_manager;
 mod sampler;
 mod shader_store;
 mod ui;
