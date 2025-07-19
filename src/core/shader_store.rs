@@ -12,7 +12,8 @@ pub enum ShaderIdentifier {
     FRAGMENT_2D,
     TEXTURE_FRAGMENT_2D,
     VERTEX_2D,
-    VERTEX_SCENE_DATA,
+    VERTEX_3D,
+    FRAGMENT_3D,
     FRAGMENT_SCENE_DATA,
 }
 

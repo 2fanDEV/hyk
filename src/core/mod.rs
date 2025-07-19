@@ -17,9 +17,10 @@ use utils::{
 };
 use wgpu::{
     wgt::CommandEncoderDescriptor, BindGroupDescriptor, BindGroupEntry, BindingResource,
-    BlendState, BufferDescriptor, BufferUsages, Color, ColorWrites, Device, FrontFace, IndexFormat, MultisampleState, PipelineLayoutDescriptor, PresentMode,
-    PrimitiveTopology, RenderPassColorAttachment, RenderPassDescriptor, RenderPipeline, StoreOp,
-    Surface, SurfaceConfiguration, TextureViewDescriptor,
+    BlendState, BufferDescriptor, BufferUsages, Color, ColorWrites, Device, FrontFace, IndexFormat,
+    MultisampleState, PipelineLayoutDescriptor, PresentMode, PrimitiveTopology,
+    RenderPassColorAttachment, RenderPassDescriptor, RenderPipeline, StoreOp, Surface,
+    SurfaceConfiguration, TextureViewDescriptor,
 };
 use winit::window::Window;
 
@@ -29,12 +30,12 @@ mod egui_integration;
 mod enums;
 pub mod geometry;
 mod instance;
-mod scene_manager;
+mod render_passes;
 mod sampler;
+mod scene_manager;
 mod shader_store;
 mod ui;
 mod utils;
-mod render_passes;
 
 pub struct FrameData {}
 pub struct Core {
@@ -155,16 +156,14 @@ impl Core {
         }
     }
 
-
     pub fn render_pass(&mut self, label: Option<&str>) -> Result<()> {
         let mut encoder = self
             .device
             .create_command_encoder(&CommandEncoderDescriptor { label });
         let surface_texture = self.surface.get_current_texture()?;
-        let texture_view = surface_texture.texture.create_view(&TextureViewDescriptor::default());
-        
-        
-
+        let texture_view = surface_texture
+            .texture
+            .create_view(&TextureViewDescriptor::default());
 
         Ok(())
     }
@@ -326,6 +325,16 @@ impl Core {
                 Some("TEXTURE_FRAGMENT"),
                 Path::new("/Users/zapzap/Projects/hyk/shaders/2D_texture_fragment_shader.spv"),
             ),
+            (
+                ShaderIdentifier::VERTEX_3D,
+                Some("VERTEX_3D_SHADER"),
+                Path::new("/Users/zapzap/hyk/shaders/scene_data_mesh.spv"),
+            ),
+            (
+                ShaderIdentifier::FRAGMENT_3D,
+                Some("FRAGMENT_3D"),
+                Path::new("/Users/zapzap/hyk/shaders/scene_data_mesh.frag.spv")
+            )
         ];
 
         for (ident, label, path) in shader_pairs {

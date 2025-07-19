@@ -36,5 +36,17 @@ impl PushConstantType for EguiPushConstant {
     }
 }
 
+#[repr(C)]
+#[derive(Debug)]
+pub struct ScenePushConstant {
+
+}
+
+impl PushConstantType for ScenePushConstant {
+    fn as_raw(&self) -> Vec<u8> {
+        todo!()
+    }
+}
+
 #[cfg(test)]
 mod tests {}
