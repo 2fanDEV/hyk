@@ -1,3 +1,3 @@
-pub enum RenderIdentifier {
+pub enum AssetIdentifier {
     DONUT
 }

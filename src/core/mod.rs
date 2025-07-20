@@ -31,6 +31,7 @@ mod enums;
 pub mod geometry;
 mod instance;
 mod render_passes;
+pub mod renderable;
 mod sampler;
 mod scene_manager;
 mod shader_store;

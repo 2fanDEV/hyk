@@ -5,7 +5,7 @@ use render_pipeline::ModelRenderPipeline;
 use wgpu::SurfaceConfiguration;
 
 use super::{
-    buffers::MeshBuffer, device::WGPUDevice, geometry::{vertex3d::Vertex3D, PushConstants}, renderable::Renderable, shader_store::{ShaderIdentifier, ShaderStore}, ui::Mesh, utils::push_constants::ScenePushConstant
+    buffers::MeshBuffer, device::WGPUDevice, geometry::vertex3d::Vertex3D, renderable::Renderable, shader_store::{ShaderIdentifier, ShaderStore}, utils::push_constants::ScenePushConstant
 };
 
 mod parser;
@@ -15,7 +15,7 @@ mod render_pipeline;
 pub struct SceneManager {
     mesh_buffers: Vec<MeshBuffer<Vertex3D>>,
     render_pipeline: ModelRenderPipeline,
-    objects: HashMap<RenderIdentifier, Box<dyn Renderable>>
+    objects: HashMap<AssetIdentifier, Box<dyn Renderable>>
 }
 
 impl SceneManager {
