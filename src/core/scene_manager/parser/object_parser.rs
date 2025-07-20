@@ -1,6 +1,6 @@
 use anyhow::Result;
 
-use crate::core::{self, geometry::{self, vertex3d::{self, Vertex3D}}, ui::{self, Mesh}};
+use crate::core::{geometry::vertex3d::Vertex3D, renderable::ui::Mesh};
 
 use super::Loader;
 
@@ -16,7 +16,7 @@ impl ObjectParser {
 
 impl Loader for ObjectParser {
 
-    fn load(&self, path: &std::path::Path) -> Result<Vec<Mesh<Vertex3D>>> {
+    fn load(&self, _path: &std::path::Path) -> Result<Vec<Mesh<Vertex3D>>> {
         Ok(vec![])
     }
 }

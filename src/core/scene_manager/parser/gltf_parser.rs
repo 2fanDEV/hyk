@@ -5,8 +5,7 @@ use glm::{Vector2, Vector3, Vector4};
 use log::debug;
 
 use crate::core::{
-    geometry::vertex3d::Vertex3D,
-    ui::{Mesh, Scissor},
+    geometry::vertex3d::Vertex3D, renderable::ui::{Mesh, Scissor},
 };
 
 use super::Loader;
@@ -29,7 +28,7 @@ impl Loader for GltfLoader {
         for (index, mesh) in meshes.enumerate() {
             vertices.clear();
             for primitive in mesh.primitives() {
-                let reader = primitive.reader(|buffer| blob.as_deref());
+                let reader = primitive.reader(|_buffer| blob.as_deref());
                 let indices = reader
                     .read_indices()
                     .unwrap()

@@ -1,11 +1,15 @@
 use std::sync::Arc;
 
-use egui::ahash::HashMap;
+use egui::ahash::{HashMap, HashMapExt};
 use render_pipeline::ModelRenderPipeline;
 use wgpu::SurfaceConfiguration;
 
 use super::{
-    buffers::MeshBuffer, device::WGPUDevice, geometry::vertex3d::Vertex3D, renderable::Renderable, shader_store::{ShaderIdentifier, ShaderStore}, utils::push_constants::ScenePushConstant
+    device::WGPUDevice,
+    geometry::vertex3d::Vertex3D,
+    renderable::{identifier::AssetIdentifier, Renderable},
+    shader_store::{ShaderIdentifier, ShaderStore},
+    utils::push_constants::ScenePushConstant,
 };
 
 mod parser;
@@ -13,9 +17,9 @@ mod render_pipeline;
 
 #[derive(Debug)]
 pub struct SceneManager {
-    mesh_buffers: Vec<MeshBuffer<Vertex3D>>,
     render_pipeline: ModelRenderPipeline,
-    objects: HashMap<AssetIdentifier, Box<dyn Renderable>>
+    renderable: HashMap<AssetIdentifier, Box<dyn Renderable>>,
+    loaded_renderables: Vec<Box<dyn Renderable>>,
 }
 
 impl SceneManager {
@@ -33,18 +37,24 @@ impl SceneManager {
             surface_config,
             fragment_3d_shader,
         );
-
         Self {
-            mesh_buffers: vec![],
+            renderable: HashMap::new(),
+            loaded_renderables: vec![],
             render_pipeline: model_render_pipeline,
         }
     }
 
-    
+    fn update(&mut self) {
+        
+    }
 
-    fn update(&mut self) {}
+    pub fn render(&mut self) {}
 
-    pub fn render(&mut self) {
+    pub fn add_renderable(&mut self, id: AssetIdentifier, renderable: Box<dyn Renderable>) {
+        self.renderable.insert(id, renderable);
+    }
 
+    pub fn remove_renderable(&mut self, id: &AssetIdentifier) -> Option<Box<dyn Renderable>> {
+        self.renderable.remove(id)
     }
 }

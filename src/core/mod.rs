@@ -8,9 +8,9 @@ use egui_integration::EguiIntegration;
 use enums::BufferInput;
 use geometry::{BindingGroupLayoutInformation, PushConstants, VertexStateInformation};
 use instance::WGPUInstance;
+use renderable::ui::{settings_menu::SettingsMenu, Ui};
 use sampler::create_egui_sampler;
 use shader_store::{ShaderIdentifier, ShaderStore};
-use ui::{settings_menu::SettingsMenu, Ui};
 use utils::{
     pipeline_attachments::{color_target_state, create_vertex_state, render_pipeline_descriptor},
     push_constants::{EguiPushConstant, PushConstantType},
@@ -35,7 +35,6 @@ pub mod renderable;
 mod sampler;
 mod scene_manager;
 mod shader_store;
-mod ui;
 mod utils;
 
 pub struct FrameData {}
@@ -157,6 +156,7 @@ impl Core {
         }
     }
 
+    #[allow(unused_mut, unused)]
     pub fn render_pass(&mut self, label: Option<&str>) -> Result<()> {
         let mut encoder = self
             .device
@@ -326,7 +326,7 @@ impl Core {
                 Some("TEXTURE_FRAGMENT"),
                 Path::new("/Users/zapzap/Projects/hyk/shaders/2D_texture_fragment_shader.spv"),
             ),
-            (
+      /*      (
                 ShaderIdentifier::VERTEX_3D,
                 Some("VERTEX_3D_SHADER"),
                 Path::new("/Users/zapzap/hyk/shaders/scene_data_mesh.spv"),
@@ -335,7 +335,7 @@ impl Core {
                 ShaderIdentifier::FRAGMENT_3D,
                 Some("FRAGMENT_3D"),
                 Path::new("/Users/zapzap/hyk/shaders/scene_data_mesh.frag.spv")
-            )
+            ) */
         ];
 
         for (ident, label, path) in shader_pairs {

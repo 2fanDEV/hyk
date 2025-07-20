@@ -17,7 +17,7 @@ fn main() {
         .enable_all()
         .build()
         .unwrap();
-    let guard = tokio_runtime.enter();
+ //   let _guard = tokio_runtime.enter();
     debug!("Tokio runtime started!");
     event_loop.run_app(&mut app).unwrap();
 }

@@ -1,15 +1,15 @@
-use std::ops::{Deref, RangeBounds};
+use std::ops::Deref;
 
 use anyhow::{anyhow, Result};
 use bytemuck::{bytes_of, cast_slice, NoUninit};
 use tokio::sync::oneshot;
 use wgpu::{
     util::{BufferInitDescriptor, DeviceExt},
-    Buffer, BufferAddress, BufferAsyncError, BufferDescriptor, BufferUsages, Device, MapMode,
-    WasmNotSend,
+    Buffer, BufferAsyncError, BufferUsages, Device, MapMode,
 };
 
-use super::ui::Scissor;
+use super::renderable::ui::Scissor;
+
 
 pub trait BufferElements {}
 
@@ -81,7 +81,7 @@ impl<T> ElementBuffer<T> {
         })
     }
 
-    pub async fn update_buffer(&mut self, device: &Device, data: impl FnOnce() -> Vec<u8>) -> Result<()> {
+    pub async fn update_buffer(&mut self, data: impl FnOnce() -> Vec<u8>) -> Result<()> {
         let buffer_for_callback = self.buffer.clone();
         let called_data = data();
 

@@ -1,16 +1,15 @@
 use std::{ops::Deref, sync::Arc};
 
-use anyhow::Result;
 use wgpu::{
     BlendState, ColorWrites, FrontFace, MultisampleState, PipelineLayoutDescriptor,
-    PrimitiveTopology, RenderPipeline, RenderPipelineDescriptor, ShaderModule,
+    PrimitiveTopology, RenderPipeline, ShaderModule,
     SurfaceConfiguration,
 };
 
 use crate::core::{
     device::WGPUDevice,
     geometry::{
-        vertex3d::Vertex3D, BindingGroupLayoutInformation, PushConstants, VertexStateInformation,
+        BindingGroupLayoutInformation, PushConstants, VertexStateInformation,
     },
     utils::pipeline_attachments::{
         color_target_state, create_vertex_state, render_pipeline_descriptor,

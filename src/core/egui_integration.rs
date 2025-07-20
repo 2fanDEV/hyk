@@ -8,13 +8,12 @@ use winit::{
 };
 
 use super::{
-    device::WGPUDevice,
-    ui::{settings_menu::SettingsMenu, Ui},
+    device::WGPUDevice, renderable::ui::{settings_menu::SettingsMenu, Ui},
 };
 
 pub struct EguiIntegration {
     pub state: State,
-    pub window: Arc<Window>,
+    pub window: Arc<Window>
 }
 
 impl EguiIntegration {

@@ -1,7 +1,6 @@
 use std::{sync::Arc, thread::sleep, time};
 
-use egui_extras::Size;
-use muda::dpi::{LogicalSize, PhysicalSize};
+use muda::dpi::PhysicalSize;
 use winit::{
     application::ApplicationHandler,
     window::{Window, WindowAttributes},

@@ -1,8 +1,8 @@
 use std::{collections::HashMap, path::Path};
 
+use crate::core::{geometry::vertex3d::Vertex3D, renderable::ui::Mesh};
 use anyhow::{anyhow, Result};
 use gltf_parser::GltfLoader;
-use crate::core::{geometry::vertex3d::Vertex3D, ui::Mesh};
 
 mod gltf_parser;
 mod object_parser;
@@ -17,20 +17,23 @@ pub struct MeshLoader {
 
 impl MeshLoader {
     fn new() -> Self {
-        let loaders: HashMap<String, Box<dyn Loader>> = HashMap::from([(".glb".to_string(), Box::new(GltfLoader::new()) as Box<dyn Loader>)]);
+        let loaders: HashMap<String, Box<dyn Loader>> = HashMap::from([(
+            ".glb".to_string(),
+            Box::new(GltfLoader::new()) as Box<dyn Loader>,
+        )]);
 
-        Self{
-            loader_registry: loaders
+        Self {
+            loader_registry: loaders,
         }
-    }   
-    
+    }
+
     pub fn load_mesh(&self, path: &Path) -> Vec<Mesh<Vertex3D>> {
-        let loader= match self.select_loader(path) {
+        let loader = match self.select_loader(path) {
             Ok(loaded_loader) => loaded_loader,
             Err(_) => return vec![],
         };
         match loader.load(path) {
-            Ok(vec) => todo!(),
+            Ok(_) => todo!(),
             Err(_) => todo!(),
         }
     }
@@ -38,7 +41,10 @@ impl MeshLoader {
     fn select_loader(&self, path: &Path) -> Result<&Box<dyn Loader>> {
         let path_str = path.to_str().unwrap();
         let file_extension = path_str.split(".").collect::<Vec<_>>()[1];
-        let loader = self.loader_registry.get(file_extension).ok_or(anyhow!("Failed to convert loader loading to result!"));
+        let loader = self
+            .loader_registry
+            .get(file_extension)
+            .ok_or(anyhow!("Failed to convert loader loading to result!"));
         loader
     }
 

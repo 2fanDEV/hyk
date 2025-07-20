@@ -5,14 +5,14 @@ use egui::{
     TextureId,
 };
 use egui_winit::State;
-use log::debug;
 use wgpu::{
     Extent3d, Origin3d, TexelCopyBufferLayout, TexelCopyTextureInfo, Texture, TextureAspect,
     TextureDescriptor, TextureDimension, TextureFormat, TextureUsages, TextureView,
     TextureViewDescriptor, TextureViewDimension,
 };
 
-use super::device::WGPUDevice;
+use crate::core::device::WGPUDevice;
+
 pub mod settings_menu;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -23,7 +23,7 @@ pub struct Scissor {
     pub y: u32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Mesh<T> {
     pub vertices: Vec<T>,
     pub indices: Vec<u32>,

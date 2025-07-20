@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
-use anyhow::{anyhow, Result};
-use wgpu::IndexFormat;
-use winit::window::{self, Window};
+use anyhow::Result;
+use winit::window::Window;
 
 use crate::core::Core;
 
@@ -36,8 +35,7 @@ impl Renderer {
     }
     
     pub fn draw(&mut self) -> Result<()> {
-        let egui_render_pass = self.core.egui_pass("Main Render Pass").unwrap();
-
+        let _egui_render_pass = self.core.egui_pass("Main Render Pass").unwrap();
         self.update();
         Ok(())
     }
