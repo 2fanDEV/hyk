@@ -326,16 +326,16 @@ impl Core {
                 Some("TEXTURE_FRAGMENT"),
                 Path::new("/Users/zapzap/Projects/hyk/shaders/2D_texture_fragment_shader.spv"),
             ),
-      /*      (
+            (
                 ShaderIdentifier::VERTEX_3D,
                 Some("VERTEX_3D_SHADER"),
-                Path::new("/Users/zapzap/hyk/shaders/scene_data_mesh.spv"),
+                Path::new("/Users/zapzap/Projects/hyk/shaders/scene_data_mesh.vert.spv"),
             ),
             (
                 ShaderIdentifier::FRAGMENT_3D,
                 Some("FRAGMENT_3D"),
-                Path::new("/Users/zapzap/hyk/shaders/scene_data_mesh.frag.spv")
-            ) */
+                Path::new("/Users/zapzap/Projects/hyk/shaders/scene_data_mesh.frag.spv")
+            )
         ];
 
         for (ident, label, path) in shader_pairs {
