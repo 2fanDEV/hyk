@@ -18,10 +18,10 @@ impl EguiPushConstant {
     pub fn new(width: f32, height: f32, pixels_per_point: f32) -> Self {
         let matrix =
             Matrix4::<f32>::new(
-            pixels_per_point * 2.0 / width, 0.0, 0.0, 0.0,
-            0.0, pixels_per_point * -2.0 / height, 0.0,0.0,
+            pixels_per_point * 2.0 / width, 0.0, 0.0, -1.0,
+            0.0, pixels_per_point * -2.0 / height, 0.0,1.0,
             0.0,0.0,1.0,0.0,
-            -1.0,1.0, 0.0,1.0,
+            0.0,0.0, 0.0,1.0,
         );
         Self {
             screen_to_clip: matrix,
