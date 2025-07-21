@@ -1,15 +1,15 @@
-use glm::{Vector2, Vector3, Vector4};
+use bytemuck::{Pod, Zeroable};
+use nalgebra::{Vector2, Vector3, Vector4};
 
 use super::{BindingGroupLayoutInformation, PushConstants, VertexStateInformation};
 
-#[derive(Copy, Clone, Debug)]
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
 pub struct Vertex3D {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
+    pub position: Vector3<f32>,
     pub uv: Vector2<f32>,
     pub normals: Vector3<f32>,
-    pub colors: Vector4<f32>
+    pub colors: Vector4<f32>,
 }
 
 impl VertexStateInformation for Vertex3D {
@@ -29,6 +29,3 @@ impl PushConstants for Vertex3D {
         todo!()
     }
 }
-
-
-

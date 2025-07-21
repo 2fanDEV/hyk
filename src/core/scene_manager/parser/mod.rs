@@ -16,7 +16,7 @@ pub struct MeshLoader {
 }
 
 impl MeshLoader {
-    fn new() -> Self {
+    pub fn new() -> Self {
         let loaders: HashMap<String, Box<dyn Loader>> = HashMap::from([(
             ".glb".to_string(),
             Box::new(GltfLoader::new()) as Box<dyn Loader>,

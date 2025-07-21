@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use anyhow::{anyhow, Result};
-use bytemuck::{bytes_of, cast_slice, NoUninit};
+use bytemuck::{bytes_of, cast_slice, NoUninit, Pod};
 use tokio::sync::oneshot;
 use wgpu::{
     util::{BufferInitDescriptor, DeviceExt},
@@ -60,7 +60,7 @@ impl<T> ElementBuffer<T> {
         elements: ElementType<T>,
     ) -> Result<ElementBuffer<T>>
     where
-        T: NoUninit,
+        T: Pod,
     {
         let elems: &[u8] = match &elements {
             ElementType::VECTOR(items) => cast_slice(items),

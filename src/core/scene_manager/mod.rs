@@ -12,7 +12,7 @@ use super::{
     utils::push_constants::ScenePushConstant,
 };
 
-mod parser;
+pub mod parser;
 mod render_pipeline;
 
 #[derive(Debug)]
