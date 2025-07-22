@@ -1,13 +1,15 @@
 use std::{path::Path, sync::Arc};
 
 use nalgebra::Vector3;
-use wgpu::BufferUsages;
 
 use crate::core::{
     buffers::{self, MeshBuffer},
     device::WGPUDevice,
     geometry::vertex3d::Vertex3D,
-    renderable::{ui::{Mesh, Scissor}, Renderable},
+    renderable::{
+        ui::{Mesh, Scissor},
+        Renderable, RenderableSealed,
+    },
     scene_manager::parser::MeshLoader,
 };
 
@@ -18,22 +20,13 @@ pub struct Donut {
     mesh_buffers: Vec<MeshBuffer<Vertex3D>>,
 }
 
+impl RenderableSealed for Donut {}
 impl Renderable for Donut {
-    fn new(path: &Path, mesh_loader: Arc<MeshLoader>, device: &WGPUDevice) -> Self
-    where
+    fn new(path: &Path, mesh_loader: Arc<MeshLoader>, label: Option<&str>, device: &WGPUDevice) -> Self
+        where 
         Self: Sized,
     {
-        let meshes = mesh_loader.load_mesh(path);
-        let mesh_buffers = vec![];
-        for mesh in &meshes {
-            buffers::ElementBuffer::new_mapped(
-                device,
-                Some("DONUT_VERTICES"),
-                BufferUsages::VERTEX,
-                Some(mesh.scissor),
-                buffers::ElementType::VECTOR(mesh.vertices.clone()),
-            );
-        }
+        let (meshes, mesh_buffers) = Self::init(path, mesh_loader, label, device);
         Self {
             position: Vector3::new(0.0, 0.0, 0.0),
             meshes,
