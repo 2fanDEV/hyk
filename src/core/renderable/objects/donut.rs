@@ -3,11 +3,11 @@ use std::{path::Path, sync::Arc};
 use nalgebra::Vector3;
 
 use crate::core::{
-    buffers::{self, MeshBuffer},
+    buffers::MeshBuffer,
     device::WGPUDevice,
     geometry::vertex3d::Vertex3D,
     renderable::{
-        ui::{Mesh, Scissor},
+        ui::{Mesh},
         Renderable, RenderableSealed,
     },
     scene_manager::parser::MeshLoader,
@@ -20,7 +20,11 @@ pub struct Donut {
     mesh_buffers: Vec<MeshBuffer<Vertex3D>>,
 }
 
-impl RenderableSealed for Donut {}
+impl RenderableSealed for Donut {
+    fn get_meshes(&self) -> &[Mesh<Vertex3D>] {
+        &self.meshes
+    }
+}
 impl Renderable for Donut {
     fn new(path: &Path, mesh_loader: Arc<MeshLoader>, label: Option<&str>, device: &WGPUDevice) -> Self
         where 
@@ -32,10 +36,6 @@ impl Renderable for Donut {
             meshes,
             mesh_buffers,
         }
-    }
-
-    fn mesh(&self) -> &Mesh<Vertex3D> {
-        todo!()
     }
 
     fn update_buffers(&mut self) {

@@ -42,13 +42,13 @@ trait RenderableSealed: Debug {
         };
         (meshes, mesh_buffers)
     }
+    fn get_meshes(&self) -> &[Mesh<Vertex3D>];
 }
 
 
 #[allow(private_bounds)]
 pub trait Renderable : RenderableSealed {
     fn new(path: &Path, mesh_loader: Arc<MeshLoader>, label: Option<&str>,  device: &WGPUDevice) -> Self where Self: Sized;
-    fn mesh(&self) -> &Mesh<Vertex3D>;
     fn update_buffers(&mut self);
     fn get_buffers(&mut self) -> MeshBuffer<Vertex3D>;
 }
