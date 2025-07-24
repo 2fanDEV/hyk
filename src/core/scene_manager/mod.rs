@@ -57,7 +57,7 @@ impl SceneManager {
     }
 
     pub fn render(&mut self, encoder: &CommandEncoder, surface: &Surface) {
-        let txt =  surface.get_current_texture();
+        let txt = surface.get_current_texture();
         let render_pass = encoder.begin_render_pass(&RenderPassDescriptor {
             label: Some("SceneManager Render Pass"),
             color_attachments: &[Option<RenderPassColorAttachment {

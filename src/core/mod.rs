@@ -35,6 +35,7 @@ mod render_passes;
 pub mod renderable;
 mod sampler;
 mod scene_manager;
+mod resource_manager;
 mod shader_store;
 mod utils;
 
