@@ -4,6 +4,7 @@ use crate::core::{geometry::vertex3d::Vertex3D, renderable::ui::Mesh};
 
 use super::Loader;
 
+#[derive(Debug)]
 pub struct ObjectParser {
 
 }

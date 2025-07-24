@@ -26,11 +26,11 @@ impl RenderableSealed for Donut {
     }
 }
 impl Renderable for Donut {
-    fn new(path: &Path, mesh_loader: Arc<MeshLoader>, label: Option<&str>, device: &WGPUDevice) -> Self
+    fn new(mesh_loader: Arc<MeshLoader>, label: Option<&str>, device: Arc<WGPUDevice>) -> Self
         where 
         Self: Sized,
     {
-        let (meshes, mesh_buffers) = Self::init(path, mesh_loader, label, device);
+        let (meshes, mesh_buffers) = Self::init(Path::new("assets/donut.glb"), mesh_loader, label, &device);
         Self {
             position: Vector3::new(0.0, 0.0, 0.0),
             meshes,

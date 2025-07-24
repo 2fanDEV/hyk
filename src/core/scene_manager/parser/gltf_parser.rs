@@ -10,6 +10,7 @@ use crate::core::{
 
 use super::Loader;
 
+#[derive(Debug)]
 pub struct GltfLoader {}
 
 impl GltfLoader {

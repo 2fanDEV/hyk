@@ -48,7 +48,7 @@ trait RenderableSealed: Debug {
 
 #[allow(private_bounds)]
 pub trait Renderable : RenderableSealed {
-    fn new(path: &Path, mesh_loader: Arc<MeshLoader>, label: Option<&str>,  device: &WGPUDevice) -> Self where Self: Sized;
+    fn new(mesh_loader: Arc<MeshLoader>, label: Option<&str>,  device: Arc<WGPUDevice>) -> Self where Self: Sized;
     fn update_buffers(&mut self);
     fn get_buffers(&mut self) -> MeshBuffer<Vertex3D>;
 }
