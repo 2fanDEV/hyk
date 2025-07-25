@@ -2,7 +2,6 @@ use std::ops::{Add, AddAssign, Sub, SubAssign};
 
 use anyhow::{anyhow, Result};
 use egui::emath::Numeric;
-use glm::{BaseNum, GenNum};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct Ranged<T: Numeric> {

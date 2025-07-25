@@ -1,5 +1,6 @@
 use std::num::{NonZero, NonZeroU32};
 
+use bytemuck::Pod;
 use egui::epaint::Vertex;
 use wgpu::{
     BindGroupLayout, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingType, Device, PushConstantRange, SamplerBindingType, ShaderStages, VertexAttribute, VertexBufferLayout, VertexFormat, VertexState, VertexStepMode

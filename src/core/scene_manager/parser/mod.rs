@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::Path};
+use std::{collections::HashMap, fmt::Debug, path::Path};
 
 use crate::core::{geometry::vertex3d::Vertex3D, renderable::ui::Mesh};
 use anyhow::{anyhow, Result};
@@ -7,16 +7,17 @@ use gltf_parser::GltfLoader;
 mod gltf_parser;
 mod object_parser;
 
-pub trait Loader {
+pub trait Loader: Debug {
     fn load(&self, path: &Path) -> Result<Vec<Mesh<Vertex3D>>>;
 }
 
+#[derive(Debug)]
 pub struct MeshLoader {
     loader_registry: HashMap<String, Box<dyn Loader>>,
 }
 
 impl MeshLoader {
-    fn new() -> Self {
+    pub fn new() -> Self {
         let loaders: HashMap<String, Box<dyn Loader>> = HashMap::from([(
             ".glb".to_string(),
             Box::new(GltfLoader::new()) as Box<dyn Loader>,

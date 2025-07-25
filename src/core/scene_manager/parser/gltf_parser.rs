@@ -1,8 +1,8 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use glm::{Vector2, Vector3, Vector4};
 use log::debug;
+use nalgebra::{Vector2, Vector3, Vector4};
 
 use crate::core::{
     geometry::vertex3d::Vertex3D, renderable::ui::{Mesh, Scissor},
@@ -10,6 +10,7 @@ use crate::core::{
 
 use super::Loader;
 
+#[derive(Debug)]
 pub struct GltfLoader {}
 
 impl GltfLoader {
@@ -60,9 +61,10 @@ impl Loader for GltfLoader {
                     };
                     let uvs = uv[i];
                     vertices.push(Vertex3D {
-                        x: position[0],
-                        y: position[1],
-                        z: position[2],
+                        position: Vector3::new(
+                        position[0],
+                        position[1],
+                        position[2]),
                         uv: Vector2::new(uvs[0], uvs[1]),
                         normals: Vector3::new(normal[0], normal[1], normal[2]),
                         colors: {

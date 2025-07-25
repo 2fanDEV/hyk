@@ -10,6 +10,7 @@ use geometry::{BindingGroupLayoutInformation, PushConstants, VertexStateInformat
 use instance::WGPUInstance;
 use renderable::ui::{settings_menu::SettingsMenu, Ui};
 use sampler::create_egui_sampler;
+use scene_manager::parser::MeshLoader;
 use shader_store::{ShaderIdentifier, ShaderStore};
 use utils::{
     pipeline_attachments::{color_target_state, create_vertex_state, render_pipeline_descriptor},
@@ -34,6 +35,7 @@ mod render_passes;
 pub mod renderable;
 mod sampler;
 mod scene_manager;
+mod resource_manager;
 mod shader_store;
 mod utils;
 
@@ -47,6 +49,7 @@ pub struct Core {
     pub render_pipeline: RenderPipeline,
     pub integration: EguiIntegration,
     pub egui_buffers: Vec<MeshBuffer<Vertex>>,
+    pub mesh_loader: Arc<MeshLoader>,
     pub window: Arc<Window>,
     pub window_scale: f32,
     pub settings: SettingsMenu,
@@ -92,6 +95,7 @@ impl Core {
             })
             .collect::<Vec<_>>();
         //       let surface_capabilities = surface.get_capabilities(&instance.adapter);
+        let mesh_loader = Arc::new(MeshLoader::new());
         let mut surface_config = surface
             .get_default_config(&instance.adapter, window_size.width, window_size.height)
             .unwrap();
@@ -132,6 +136,8 @@ impl Core {
                 ColorWrites::ALL,
             ),
         ));
+
+
         Ok(Self {
             instance,
             surface,
@@ -142,6 +148,7 @@ impl Core {
             integration,
             window_scale,
             egui_buffers,
+            mesh_loader,
             settings,
             window: window.clone(),
         })
@@ -335,7 +342,8 @@ impl Core {
                 ShaderIdentifier::FRAGMENT_3D,
                 Some("FRAGMENT_3D"),
                 Path::new("/Users/zapzap/Projects/hyk/shaders/scene_data_mesh.frag.spv")
-            )
+            ) 
+                 
         ];
 
         for (ident, label, path) in shader_pairs {
