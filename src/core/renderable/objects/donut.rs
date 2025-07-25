@@ -3,14 +3,10 @@ use std::{path::Path, sync::Arc};
 use nalgebra::Vector3;
 
 use crate::core::{
-    buffers::MeshBuffer,
-    device::WGPUDevice,
-    geometry::vertex3d::Vertex3D,
-    renderable::{
-        ui::{Mesh},
+    buffers::MeshBuffer, device::WGPUDevice, geometry::vertex3d::Vertex3D, renderable::{
+        ui::Mesh,
         Renderable, RenderableSealed,
-    },
-    scene_manager::parser::MeshLoader,
+    }, resource_manager::TextureHandle, scene_manager::parser::MeshLoader
 };
 
 #[derive(Debug)]
@@ -18,6 +14,7 @@ pub struct Donut {
     position: Vector3<f32>,
     meshes: Vec<Mesh<Vertex3D>>,
     mesh_buffers: Vec<MeshBuffer<Vertex3D>>,
+    texture_handle: TextureHandle
 }
 
 impl RenderableSealed for Donut {
@@ -35,6 +32,7 @@ impl Renderable for Donut {
             position: Vector3::new(0.0, 0.0, 0.0),
             meshes,
             mesh_buffers,
+            texture_handle: TextureHandle::VERTEX_3D
         }
     }
 
@@ -44,5 +42,9 @@ impl Renderable for Donut {
 
     fn get_buffers(&mut self) -> MeshBuffer<Vertex3D> {
         todo!()
+    }
+
+    fn get_texture_handle(&self) -> &TextureHandle {
+        &self.texture_handle
     }
 }
