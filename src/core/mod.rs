@@ -152,6 +152,8 @@ impl Core {
             window_scale,
             egui_buffers,
             mesh_loader,
+            scene_manager,
+            resource_manager,
             settings,
             window: window.clone(),
         })

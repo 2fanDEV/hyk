@@ -1,12 +1,12 @@
 use std::{collections::HashMap, sync::Arc};
 
-use strum_macros::{AsRefStr, EnumString, IntoStaticStr};
+use strum_macros::AsRefStr;
 use wgpu::{
-    Device, Extent3d, TextureDescriptor, TextureFormat, TextureUsages, TextureView,
+    Extent3d, TextureDescriptor, TextureFormat, TextureUsages, TextureView,
     TextureViewDescriptor, TextureViewDimension,
 };
 
-use super::renderable::Renderable;
+use super::{device::WGPUDevice, renderable::Renderable};
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq, PartialOrd, AsRefStr)]
@@ -25,11 +25,11 @@ pub struct TextureDetail {
 
 pub struct ResourceManager {
     texture_views: HashMap<TextureHandle, TextureDetail>,
-    device: Arc<Device>,
+    device: Arc<WGPUDevice>,
 }
 
 impl ResourceManager {
-    pub fn new(device: Arc<Device>) -> Self {
+    pub fn new(device: Arc<WGPUDevice>) -> Self {
         Self {
             texture_views: HashMap::new(),
             device,
