@@ -15,6 +15,7 @@ pub struct Donut {
     meshes: Vec<Mesh<Vertex3D>>,
     mesh_buffers: Vec<MeshBuffer<Vertex3D>>,
     texture_handle: TextureHandle
+
 }
 
 impl RenderableSealed for Donut {
@@ -40,8 +41,8 @@ impl Renderable for Donut {
         todo!()
     }
 
-    fn get_buffers(&mut self) -> MeshBuffer<Vertex3D> {
-        todo!()
+    fn get_buffers(&self) -> &[MeshBuffer<Vertex3D>] {
+        &self.mesh_buffers
     }
 
     fn get_texture_handle(&self) -> &TextureHandle {

@@ -14,13 +14,13 @@ use super::renderable::ui::Scissor;
 pub trait BufferElements {}
 
 #[allow(non_camel_case_types)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ElementType<T> {
     VECTOR(Vec<T>),
     SINGLE_ELEMENT(T),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MeshBuffer<T> {
     pub vertex_buffer: ElementBuffer<T>,
     pub index_buffer: ElementBuffer<u32>,
@@ -35,7 +35,7 @@ impl<T> MeshBuffer<T> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ElementBuffer<T> {
     buffer: Buffer,
     pub size: u32,

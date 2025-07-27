@@ -135,7 +135,7 @@ pub trait Ui: UiSealed {
         };
         let format = TextureFormat::Rgba8Unorm;
         let usage = TextureUsages::TEXTURE_BINDING;
-        let data = cast_slice(&colors) as &[u8];create_texture;
+        let data = cast_slice(&colors) as &[u8];
         let texture = device.create_texture(&TextureDescriptor {
             label: label,
             size: image_size,

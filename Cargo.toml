@@ -22,3 +22,4 @@ mockall = "0.13.1"
 bytemuck = "1.23.1"
 gltf = "1.4.1"
 nalgebra = { version="0.33.2", features = ["bytemuck"]}
+strum_macros = "0.27.2"

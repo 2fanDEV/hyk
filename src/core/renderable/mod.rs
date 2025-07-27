@@ -2,7 +2,7 @@ use std::{fmt::Debug, path::Path, sync::Arc};
 
 
 use ui::Mesh;
-use wgpu::{BufferUsages, TextureDescriptor, TextureViewDescriptor};
+use wgpu::BufferUsages;
 
 use super::{buffers::{self, MeshBuffer}, device::WGPUDevice, geometry::vertex3d::Vertex3D, resource_manager::TextureHandle, scene_manager::parser::MeshLoader};
 
@@ -50,9 +50,6 @@ trait RenderableSealed: Debug {
 pub trait Renderable : RenderableSealed {
     fn new(mesh_loader: Arc<MeshLoader>, label: Option<&str>,  device: Arc<WGPUDevice>) -> Self where Self: Sized;
     fn update_buffers(&mut self);
-    fn get_buffers(&mut self) -> MeshBuffer<Vertex3D>;
+    fn get_buffers(&self) -> &[MeshBuffer<Vertex3D>];
     fn get_texture_handle(&self) -> &TextureHandle;
-    fn get_texture_details(&self) {
-        
-    }
 }

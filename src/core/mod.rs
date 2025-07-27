@@ -9,8 +9,9 @@ use enums::BufferInput;
 use geometry::{BindingGroupLayoutInformation, PushConstants, VertexStateInformation};
 use instance::WGPUInstance;
 use renderable::ui::{settings_menu::SettingsMenu, Ui};
+use resource_manager::ResourceManager;
 use sampler::create_egui_sampler;
-use scene_manager::parser::MeshLoader;
+use scene_manager::{parser::MeshLoader, SceneManager};
 use shader_store::{ShaderIdentifier, ShaderStore};
 use utils::{
     pipeline_attachments::{color_target_state, create_vertex_state, render_pipeline_descriptor},
@@ -50,6 +51,8 @@ pub struct Core {
     pub integration: EguiIntegration,
     pub egui_buffers: Vec<MeshBuffer<Vertex>>,
     pub mesh_loader: Arc<MeshLoader>,
+    pub scene_manager: SceneManager,
+    pub resource_manager: ResourceManager,
     pub window: Arc<Window>,
     pub window_scale: f32,
     pub settings: SettingsMenu,
@@ -136,8 +139,8 @@ impl Core {
                 ColorWrites::ALL,
             ),
         ));
-
-
+        let scene_manager = SceneManager::new(device.clone(), mesh_loader.clone(), &shader_store, &surface_config);
+        let resource_manager = ResourceManager::new(device.clone());
         Ok(Self {
             instance,
             surface,
