@@ -7,6 +7,7 @@ use egui::epaint::Vertex;
 use egui_integration::EguiIntegration;
 use enums::BufferInput;
 use geometry::{BindingGroupLayoutInformation, PushConstants, VertexStateInformation};
+use gltf::scene;
 use instance::WGPUInstance;
 use renderable::ui::{settings_menu::SettingsMenu, Ui};
 use resource_manager::ResourceManager;
@@ -177,7 +178,6 @@ impl Core {
         let texture_view = surface_texture
             .texture
             .create_view(&TextureViewDescriptor::default());
-
         Ok(())
     }
 
