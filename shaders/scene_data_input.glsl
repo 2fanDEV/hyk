@@ -16,4 +16,3 @@ layout(set = 1, binding = 1) uniform texture2D colorTex;
 layout(set = 1, binding = 2) uniform sampler colorSampler;
 layout(set = 1, binding = 3) uniform texture2D metalRoughTex;
 layout(set = 1, binding = 4) uniform sampler metalRoughSampler;
-

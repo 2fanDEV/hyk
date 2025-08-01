@@ -1,5 +1,3 @@
-use std::cmp::max;
-
 use egui::RawInput;
 use egui_winit::State;
 use log::debug;
@@ -19,7 +17,6 @@ pub struct SettingsMenu {
     max_content_height: f32, //
 }
 
-
 impl Ui for SettingsMenu {
     fn new(device: &WGPUDevice, state: &mut State, raw_input: RawInput) -> Self {
         Self {
@@ -32,7 +29,6 @@ impl Ui for SettingsMenu {
             max_content_height: 1.0,
         }
     }
-
 }
 
 impl UiSealed for SettingsMenu {
