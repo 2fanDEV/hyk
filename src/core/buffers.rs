@@ -1,7 +1,7 @@
 use std::ops::Deref;
 
 use anyhow::{anyhow, Result};
-use bytemuck::{bytes_of, cast_slice, NoUninit};
+use bytemuck::{bytes_of, cast_slice, NoUninit, Pod};
 use tokio::sync::oneshot;
 use wgpu::{
     util::{BufferInitDescriptor, DeviceExt},
@@ -14,13 +14,13 @@ use super::renderable::ui::Scissor;
 pub trait BufferElements {}
 
 #[allow(non_camel_case_types)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ElementType<T> {
     VECTOR(Vec<T>),
     SINGLE_ELEMENT(T),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MeshBuffer<T> {
     pub vertex_buffer: ElementBuffer<T>,
     pub index_buffer: ElementBuffer<u32>,
@@ -35,7 +35,7 @@ impl<T> MeshBuffer<T> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ElementBuffer<T> {
     buffer: Buffer,
     pub size: u32,
@@ -60,7 +60,7 @@ impl<T> ElementBuffer<T> {
         elements: ElementType<T>,
     ) -> Result<ElementBuffer<T>>
     where
-        T: NoUninit,
+        T: Pod,
     {
         let elems: &[u8] = match &elements {
             ElementType::VECTOR(items) => cast_slice(items),

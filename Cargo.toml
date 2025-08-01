@@ -10,7 +10,6 @@ egui-winit = "0.31.0"
 egui_extras = { version = "0.31.0", features = ["all_loaders"]}
 image = { version = "0.25", features = ["jpeg", "png"] } 
 env_logger = "0.11.8"
-glm = "0.2.3"
 log = "0.4.27"
 muda = "0.16.1"
 pollster = "0.4.0"
@@ -22,3 +21,5 @@ winit = "0.30.11"
 mockall = "0.13.1"
 bytemuck = "1.23.1"
 gltf = "1.4.1"
+nalgebra = { version="0.33.2", features = ["bytemuck"]}
+strum_macros = "0.27.2"

@@ -2,15 +2,12 @@ use std::{ops::Deref, sync::Arc};
 
 use wgpu::{
     BlendState, ColorWrites, FrontFace, MultisampleState, PipelineLayoutDescriptor,
-    PrimitiveTopology, RenderPipeline, ShaderModule,
-    SurfaceConfiguration,
+    PrimitiveTopology, RenderPipeline, ShaderModule, SurfaceConfiguration,
 };
 
 use crate::core::{
     device::WGPUDevice,
-    geometry::{
-        BindingGroupLayoutInformation, PushConstants, VertexStateInformation,
-    },
+    geometry::{BindingGroupLayoutInformation, PushConstants, VertexStateInformation},
     utils::pipeline_attachments::{
         color_target_state, create_vertex_state, render_pipeline_descriptor,
     },
@@ -56,7 +53,8 @@ impl ModelRenderPipeline {
             fragment_shader,
             PrimitiveTopology::TriangleList,
             FrontFace::Cw,
-            None, wgpu::PolygonMode::Fill,
+            None,
+            wgpu::PolygonMode::Fill,
             None,
             MultisampleState {
                 count: 1,

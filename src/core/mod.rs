@@ -7,9 +7,12 @@ use egui::epaint::Vertex;
 use egui_integration::EguiIntegration;
 use enums::BufferInput;
 use geometry::{BindingGroupLayoutInformation, PushConstants, VertexStateInformation};
+use gltf::scene;
 use instance::WGPUInstance;
 use renderable::ui::{settings_menu::SettingsMenu, Ui};
+use resource_manager::ResourceManager;
 use sampler::create_egui_sampler;
+use scene_manager::{parser::MeshLoader, SceneManager};
 use shader_store::{ShaderIdentifier, ShaderStore};
 use utils::{
     pipeline_attachments::{color_target_state, create_vertex_state, render_pipeline_descriptor},
@@ -34,6 +37,7 @@ mod render_passes;
 pub mod renderable;
 mod sampler;
 mod scene_manager;
+mod resource_manager;
 mod shader_store;
 mod utils;
 
@@ -47,6 +51,9 @@ pub struct Core {
     pub render_pipeline: RenderPipeline,
     pub integration: EguiIntegration,
     pub egui_buffers: Vec<MeshBuffer<Vertex>>,
+    pub mesh_loader: Arc<MeshLoader>,
+    pub scene_manager: SceneManager,
+    pub resource_manager: ResourceManager,
     pub window: Arc<Window>,
     pub window_scale: f32,
     pub settings: SettingsMenu,
@@ -92,6 +99,7 @@ impl Core {
             })
             .collect::<Vec<_>>();
         //       let surface_capabilities = surface.get_capabilities(&instance.adapter);
+        let mesh_loader = Arc::new(MeshLoader::new());
         let mut surface_config = surface
             .get_default_config(&instance.adapter, window_size.width, window_size.height)
             .unwrap();
@@ -132,6 +140,8 @@ impl Core {
                 ColorWrites::ALL,
             ),
         ));
+        let scene_manager = SceneManager::new(device.clone(), mesh_loader.clone(), &shader_store, &surface_config);
+        let resource_manager = ResourceManager::new(device.clone());
         Ok(Self {
             instance,
             surface,
@@ -142,6 +152,9 @@ impl Core {
             integration,
             window_scale,
             egui_buffers,
+            mesh_loader,
+            scene_manager,
+            resource_manager,
             settings,
             window: window.clone(),
         })
@@ -165,7 +178,6 @@ impl Core {
         let texture_view = surface_texture
             .texture
             .create_view(&TextureViewDescriptor::default());
-
         Ok(())
     }
 
@@ -335,7 +347,8 @@ impl Core {
                 ShaderIdentifier::FRAGMENT_3D,
                 Some("FRAGMENT_3D"),
                 Path::new("/Users/zapzap/Projects/hyk/shaders/scene_data_mesh.frag.spv")
-            )
+            ) 
+                 
         ];
 
         for (ident, label, path) in shader_pairs {
